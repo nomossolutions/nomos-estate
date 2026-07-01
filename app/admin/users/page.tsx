@@ -1,6 +1,7 @@
+import { FiSearch, FiPlus, FiCheckCircle, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { createClient } from '@/lib/supabase/server';
-import { toggleUserRole } from './actions';
 import Link from 'next/link';
+import ToggleRoleButton from '@/components/admin/ToggleRoleButton';
 
 export default async function AdminUsersPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -21,63 +22,61 @@ export default async function AdminUsersPage(props: {
   if (error) {
     return (
       <div className="p-8 text-red-500">
-        Error loading users: {error.message}
+        Error al cargar usuarios: {error.message}
       </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-screen">
       <header className="w-full pt-8 pb-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-nordic">
-              User Directory
+              Directorio de Usuarios
             </h1>
             <p className="text-nordic/60 mt-1 text-sm">
-              Manage user access and roles for your properties.
+              Gestiona el acceso y roles de los usuarios de tus propiedades.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <div className="relative group w-full md:w-80">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="material-icons text-nordic/40 group-focus-within:text-mosque text-xl">
-                  search
-                </span>
+                <FiSearch className="text-nordic/40 group-focus-within:text-mosque text-xl" />
               </div>
               <input
                 className="block w-full pl-10 pr-3 py-2.5 border-none rounded-lg bg-white text-nordic shadow-soft placeholder-nordic/30 focus:ring-2 focus:ring-mosque focus:bg-white transition-all text-sm"
-                placeholder="Search by name, email..."
+                placeholder="Buscar por nombre, email..."
                 type="text"
               />
             </div>
             <button className="bg-mosque hover:bg-mosque/90 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md shadow-mosque/20 transition-all transform hover:-translate-y-0.5 inline-flex items-center justify-center gap-2 whitespace-nowrap">
-              <span className="material-icons text-base">add</span>
-              Add User
+              <FiPlus className="text-base" />
+              Añadir Usuario
             </button>
           </div>
         </div>
         <div className="mt-8 flex gap-6 border-b border-nordic/10 overflow-x-auto">
           <button className="pb-3 text-sm font-semibold text-mosque border-b-2 border-mosque">
-            All Users
+            Todos los Usuarios
           </button>
           <button className="pb-3 text-sm font-medium text-nordic/60 hover:text-nordic transition-colors">
-            Agents
+            Agentes
           </button>
           <button className="pb-3 text-sm font-medium text-nordic/60 hover:text-nordic transition-colors">
-            Brokers
+            Corredores
           </button>
           <button className="pb-3 text-sm font-medium text-nordic/60 hover:text-nordic transition-colors">
-            Admins
+            Administradores
           </button>
         </div>
       </header>
       <main className="grow px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full pb-12 space-y-4">
         <div className="hidden md:grid grid-cols-12 gap-4 px-6 text-xs font-semibold uppercase tracking-wider text-nordic/50 mb-2">
-          <div className="col-span-4">User Details</div>
-          <div className="col-span-3">Role &amp; Status</div>
-          <div className="col-span-3">Performance</div>
-          <div className="col-span-2 text-right">Actions</div>
+          <div className="col-span-4">Detalles del Usuario</div>
+          <div className="col-span-3">Rol &amp; Estado</div>
+          <div className="col-span-3">Rendimiento</div>
+          <div className="col-span-2 text-right">Acciones</div>
         </div>
 
         {users?.map((user) => (
@@ -108,56 +107,38 @@ export default async function AdminUsersPage(props: {
               <span
                 className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${user.role === 'admin' ? 'bg-mosque/10 text-mosque' : 'bg-gray-100 text-gray-600'}`}
               >
-                {user.role === 'admin' ? 'Administrator' : 'User'}
+                {user.role === 'admin' ? 'Administrador' : 'Usuario'}
               </span>
               <div className="flex items-center text-xs text-nordic/60">
-                <span className="material-icons text-[14px] mr-1 text-mosque">
-                  check_circle
-                </span>
-                Active
+                <FiCheckCircle className="text-sm mr-1 text-mosque" />
+                Activo
               </div>
             </div>
             <div className="col-span-12 md:col-span-3 w-full grid grid-cols-2 gap-4">
               <div>
                 <div className="text-[10px] uppercase tracking-wider text-nordic/50">
-                  Properties
+                  Propiedades
                 </div>
                 <div className="text-sm font-semibold text-nordic">-</div>
               </div>
               <div>
                 <div className="text-[10px] uppercase tracking-wider text-nordic/50">
-                  Access Level
+                  Nivel de Acceso
                 </div>
                 <div className="text-sm font-semibold text-nordic">
-                  {user.role === 'admin' ? 'Level 5' : 'Level 1'}
+                  {user.role === 'admin' ? 'Nivel 5' : 'Nivel 1'}
                 </div>
               </div>
             </div>
             <div className="col-span-12 md:col-span-2 w-full flex justify-end relative">
-              <form
-                action={async () => {
-                  'use server';
-                  await toggleUserRole(user.id, user.role);
-                }}
-                className="w-full md:w-auto"
-              >
-                <button
-                  type="submit"
-                  className="inline-flex items-center px-4 py-2 border border-nordic/10 bg-white shadow-sm text-xs font-medium rounded-lg text-nordic hover:bg-nordic hover:text-white focus:outline-none transition-colors w-full md:w-auto justify-center"
-                >
-                  {user.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
-                  <span className="material-icons text-[16px] ml-2">
-                    sync_alt
-                  </span>
-                </button>
-              </form>
+              <ToggleRoleButton userId={user.id} currentRole={user.role} />
             </div>
           </div>
         ))}
 
         {(!users || users.length === 0) && (
           <div className="text-center py-12 text-sm text-nordic/50">
-            No users found.
+            No se encontraron usuarios.
           </div>
         )}
 
@@ -165,22 +146,20 @@ export default async function AdminUsersPage(props: {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-nordic/10 bg-gray-50/50 rounded-xl mt-6">
             <div className="text-sm text-nordic/60">
-              Showing{' '}
+              Mostrando{' '}
               <span className="font-medium text-nordic">{from + 1}</span> to{' '}
               <span className="font-medium text-nordic">
                 {Math.min(to, count)}
               </span>{' '}
               of <span className="font-medium text-nordic">{count}</span>{' '}
-              results
+              resultados
             </div>
             <div className="flex items-center gap-2">
               <Link
                 href={`/admin/users?page=${Math.max(1, page - 1)}`}
                 className={`p-2 rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === 1 ? 'pointer-events-none opacity-50' : ''}`}
               >
-                <span className="material-icons text-xl block">
-                  chevron_left
-                </span>
+                <FiChevronLeft className="text-xl block" />
               </Link>
               <div className="flex items-center gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -199,14 +178,12 @@ export default async function AdminUsersPage(props: {
                 href={`/admin/users?page=${Math.min(totalPages, page + 1)}`}
                 className={`p-2 rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === totalPages ? 'pointer-events-none opacity-50' : ''}`}
               >
-                <span className="material-icons text-xl block">
-                  chevron_right
-                </span>
+                <FiChevronRight className="text-xl block" />
               </Link>
             </div>
           </div>
         )}
       </main>
-    </>
+    </div>
   );
 }

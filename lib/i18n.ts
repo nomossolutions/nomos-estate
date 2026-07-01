@@ -1,12 +1,87 @@
-import en from '@/data/dictionaries/en.json';
-import es from '@/data/dictionaries/es.json';
-import fr from '@/data/dictionaries/fr.json';
-
-export const dictionaries = { en, es, fr };
-export const defaultLang = 'es';
-
-export type Locale = keyof typeof dictionaries;
-
-export const getDictionary = (locale: string) => {
-  return dictionaries[locale as Locale] || dictionaries['en'];
+const content = {
+  navbar: {
+    home: 'Inicio',
+    properties: 'Propiedades',
+    about: 'Sobre Nosotros',
+    login: 'Iniciar Sesión',
+  },
+  hero: {
+    title_start: 'Vive el ',
+    title_highlight: 'espacio',
+    title_end: ' que imaginas.',
+    subtitle: 'Descubre las mejores propiedades en el mercado',
+    search_placeholder: 'Buscar por ciudad, barrio o dirección...',
+    search_button: 'Buscar',
+  },
+  common: {
+    featured_properties: 'Colecciones Destacadas',
+    new_in_market: 'Nuevas en el Mercado',
+    view_details: 'Ver Detalles',
+    any_type: 'Cualquier Tipo',
+    property_types: {
+      villa: 'Villa',
+      house: 'Casa',
+      apartment: 'Apartamento',
+      condo: 'Condominio',
+    },
+    previous: 'Anterior',
+    next: 'Siguiente',
+    beds: 'Camas',
+    baths: 'Baños',
+  },
+  property_detail: {
+    schedule_visit: 'Agendar Visita',
+    contact_agent: 'Contactar Agente',
+    property_features: 'Características',
+    square_meters: 'Metros Cuadrados',
+    bedrooms: 'Habitaciones',
+    bathrooms: 'Baños',
+    garage: 'Garaje',
+    about_home: 'Acerca de esta propiedad',
+    read_more: 'Leer más',
+    amenities: 'Comodidades',
+    smart_home: 'Sistema de Hogar Inteligente',
+    swimming_pool: 'Piscina',
+    heating_cooling: 'Calefacción y Climatización',
+    ev_charging: 'Carga para Vehículo Eléctrico',
+    private_gym: 'Gimnasio Privado',
+    wine_cellar: 'Bodega de Vinos',
+    estimated_payment: 'Pago Estimado',
+    starting_from: 'Desde',
+    down: 'de entrada',
+    calculate_mortgage: 'Calcular Hipoteca',
+    map_unavailable: 'Datos del mapa no disponibles',
+    top_rated_agent: 'Agente Mejor Valorado',
+    footer_rights: '© 2025 NomosEstate Inc. Todos los derechos reservados.',
+  },
+  footer: {
+    description:
+      'Plataforma premium de bienes raíces. Encuentra la propiedad de tus sueños con NomosEstate.',
+    quick_links: 'Enlaces',
+    contact: 'Contacto',
+    about: 'Sobre Nosotros',
+    rights: '© 2026 NomosEstate. Todos los derechos reservados.',
+  },
+  about: {
+    title: 'Transformando la experiencia inmobiliaria',
+    subtitle: 'Combinamos tecnología de vanguardia con un servicio personalizado para ofrecerte las mejores propiedades del mercado.',
+    mission_title: 'Nuestra Misión',
+    mission_text: 'En NomosEstate, nos dedicamos a revolucionar la forma en que las personas encuentran su hogar ideal. Creemos que cada propiedad cuenta una historia y nuestro objetivo es ayudarte a descubrir la tuya.',
+    vision_title: 'Nuestra Visión',
+    vision_text: 'Ser la plataforma líder en Latinoamérica para la compra, venta y alquiler de propiedades de lujo, estableciendo nuevos estándares de transparencia, innovación y excelencia en el servicio.',
+    values_title: 'Nuestros Valores',
+    values: [
+      { title: 'Excelencia', description: 'Nos esforzamos por superar las expectativas en cada interacción.' },
+      { title: 'Innovación', description: 'Utilizamos tecnología de punta para simplificar tu búsqueda.' },
+      { title: 'Transparencia', description: 'Creemos en relaciones basadas en la confianza y la honestidad.' },
+      { title: 'Compromiso', description: 'Tu satisfacción es nuestra prioridad absoluta.' },
+    ],
+    team_title: 'Nuestro Equipo',
+    team_text: 'Contamos con un equipo de profesionales apasionados por el mundo inmobiliario, con años de experiencia y un profundo conocimiento del mercado.',
+    cta_title: '¿Listo para encontrar tu propiedad ideal?',
+    cta_text: 'Explora nuestras propiedades exclusivas o contáctanos para una asesoría personalizada.',
+    cta_button: 'Explorar Propiedades',
+  },
 };
+
+export default content;

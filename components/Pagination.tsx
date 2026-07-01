@@ -1,15 +1,20 @@
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Link from 'next/link';
 
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   baseUrl?: string;
+  prevLabel?: string;
+  nextLabel?: string;
 }
 
 export default function Pagination({
   currentPage,
   totalPages,
   baseUrl = '/',
+  prevLabel = 'Anterior',
+  nextLabel = 'Siguiente',
 }: PaginationProps) {
   if (totalPages <= 1) return null;
 
@@ -32,17 +37,13 @@ export default function Pagination({
           href={buildHref(currentPage - 1)}
           className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-nordic bg-white border border-nordic/10 rounded-lg hover:border-mosque hover:text-mosque transition-all hover:shadow-sm"
         >
-          <span className="material-icons text-base font-material-icons">
-            chevron_left
-          </span>
-          Anterior
+          <FiChevronLeft className="text-base" />
+          {prevLabel}
         </Link>
       ) : (
         <span className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-nordic-muted bg-white border border-nordic/10 rounded-lg opacity-40 cursor-not-allowed">
-          <span className="material-icons text-base font-material-icons">
-            chevron_left
-          </span>
-          Anterior
+          <FiChevronLeft className="text-base" />
+          {prevLabel}
         </span>
       )}
 
@@ -69,17 +70,13 @@ export default function Pagination({
           href={buildHref(currentPage + 1)}
           className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-nordic bg-white border border-nordic/10 rounded-lg hover:border-mosque hover:text-mosque transition-all hover:shadow-sm"
         >
-          Siguiente
-          <span className="material-icons text-base font-material-icons">
-            chevron_right
-          </span>
+          {nextLabel}
+          <FiChevronRight className="text-base" />
         </Link>
       ) : (
         <span className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-nordic-muted bg-white border border-nordic/10 rounded-lg opacity-40 cursor-not-allowed">
-          Siguiente
-          <span className="material-icons text-base font-material-icons">
-            chevron_right
-          </span>
+          {nextLabel}
+          <FiChevronRight className="text-base" />
         </span>
       )}
     </nav>

@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Sora } from 'next/font/google';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import Toaster from '@/components/Toaster';
 import './globals.css';
 
 const inter = Inter({
@@ -8,9 +11,15 @@ const inter = Inter({
   display: 'swap',
 });
 
+const sora = Sora({
+  subsets: ['latin'],
+  variable: '--font-sora',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'Luxe Estate',
-  description: 'Find your dream home with Luxe Estate',
+  title: 'Nomos Estate',
+  description: 'Encuentra la propiedad de tus sueños con Nomos Estate',
 };
 
 export default function RootLayout({
@@ -19,17 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/icon?family=Material+Icons"
-          rel="stylesheet"
-        />
-      </head>
+      <html lang="es">
       <body
-        className={`${inter.variable} font-display antialiased bg-clear-day text-nordic`}
+        className={`${inter.variable} ${sora.variable} font-body antialiased bg-clear-day text-nordic`}
       >
+        <Navbar />
         {children}
+        <Footer />
+        <Toaster />
       </body>
     </html>
   );

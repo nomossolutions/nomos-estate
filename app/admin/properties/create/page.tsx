@@ -1,3 +1,4 @@
+import { FiChevronRight } from 'react-icons/fi';
 import PropertyForm from '@/components/admin/PropertyForm';
 import Link from 'next/link';
 
@@ -13,26 +14,23 @@ export default function CreatePropertyPage() {
                   href="/admin/properties"
                   className="hover:text-mosque transition-colors"
                 >
-                  Properties
+                  Propiedades
                 </Link>
               </li>
               <li>
-                <span className="material-icons text-xs text-gray-400">
-                  chevron_right
-                </span>
+                <FiChevronRight className="text-xs text-gray-400" />
               </li>
               <li aria-current="page" className="text-nordic">
-                Add New
+                Añadir Nueva
               </li>
             </ol>
           </nav>
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-nordic tracking-tight mb-2">
-              Add New Property
+              Añadir Nueva Propiedad
             </h1>
             <p className="text-base text-gray-500 max-w-2xl font-normal font-sans">
-              Fill in the details below to create a new listing. Fields marked
-              with * are mandatory.
+              Completa los detalles a continuación para crear un nuevo anuncio. Los campos marcados con * son obligatorios.
             </p>
           </div>
         </div>

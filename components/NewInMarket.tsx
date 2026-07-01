@@ -1,10 +1,9 @@
 import PropertyCard from './ui/PropertyCard';
 import Pagination from './Pagination';
 import { Property } from '@/types/property';
-import type { CommonDict } from '@/types/i18n';
+import content from '@/lib/i18n';
 
 interface NewInMarketProps {
-  dict: CommonDict;
   properties: Property[];
   totalCount: number;
   currentPage: number;
@@ -12,7 +11,6 @@ interface NewInMarketProps {
 }
 
 const NewInMarket = ({
-  dict,
   properties,
   totalCount,
   currentPage,
@@ -21,25 +19,25 @@ const NewInMarket = ({
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <section>
+    <section id="properties">
       <div className="flex items-end justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-light text-nordic">
-            {dict.new_in_market}
+          <h2 className="text-2xl font-light text-nordic font-display">
+            {content.common.new_in_market}
           </h2>
           <p className="text-nordic-muted mt-1 text-sm">
-            Fresh opportunities added this week.
+            Oportunidades frescas agregadas esta semana.
           </p>
         </div>
         <div className="hidden md:flex bg-white p-1 rounded-lg">
           <button className="px-4 py-1.5 rounded-md text-sm font-medium bg-nordic text-white shadow-sm">
-            All
+            Todas
           </button>
           <button className="px-4 py-1.5 rounded-md text-sm font-medium text-nordic-muted hover:text-nordic">
-            Buy
+            Comprar
           </button>
           <button className="px-4 py-1.5 rounded-md text-sm font-medium text-nordic-muted hover:text-nordic">
-            Rent
+            Alquilar
           </button>
         </div>
       </div>
@@ -54,6 +52,8 @@ const NewInMarket = ({
         currentPage={currentPage}
         totalPages={totalPages}
         baseUrl="/"
+        prevLabel={content.common.previous}
+        nextLabel={content.common.next}
       />
     </section>
   );

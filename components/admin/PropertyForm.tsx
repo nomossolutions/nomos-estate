@@ -1,9 +1,16 @@
 'use client';
 
+import {
+  FiInfo, FiFileText, FiBold, FiItalic, FiList,
+  FiImage, FiUploadCloud, FiTrash2, FiMapPin, FiMap,
+  FiMinimize2, FiHome, FiDroplet, FiNavigation,
+  FiRefreshCw, FiSave
+} from 'react-icons/fi';
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Property } from '@/types/property';
+import { Property, PropertyInsert } from '@/types/property';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 import Image from 'next/image';
 import DynamicPropertyMap from '@/components/DynamicPropertyMap';
 
@@ -116,14 +123,14 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     }
   };
 
-  const incrementValue = (field: keyof Property) => {
+  const incrementValue = (field: 'beds' | 'baths' | 'sqft' | 'year_built' | 'parking') => {
     setFormData((prev) => ({
       ...prev,
       [field]: (Number(prev[field]) || 0) + 1,
     }));
   };
 
-  const decrementValue = (field: keyof Property) => {
+  const decrementValue = (field: 'beds' | 'baths' | 'sqft' | 'year_built' | 'parking') => {
     setFormData((prev) => ({
       ...prev,
       [field]: Math.max(0, (Number(prev[field]) || 0) - 1),
@@ -132,6 +139,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
   const generateSlug = (title: string) => {
     return title
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
@@ -181,18 +190,18 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
       if (isEditMode && initialData?.id) {
         const { error: updateError } = await supabase
           .from('properties')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .update(propertyData as any)
+          .update(propertyData as PropertyInsert)
           .eq('id', initialData.id);
 
         if (updateError) throw updateError;
+        toast.success('Propiedad actualizada correctamente');
       } else {
         const { error: insertError } = await supabase
           .from('properties')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .insert([propertyData as any]);
+          .insert([propertyData as PropertyInsert]);
 
         if (insertError) throw insertError;
+        toast.success('Propiedad creada correctamente');
       }
 
       router.push('/admin/properties');
@@ -200,21 +209,23 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('Error saving property:', err);
-      setError(err.message || 'Failed to save property. Please try again.');
+      const message = err.message || 'Error al guardar la propiedad';
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
   const AMENITIES_LIST = [
-    'Swimming Pool',
-    'Garden',
-    'Air Conditioning',
-    'Smart Home',
-    'Balcony',
-    'Gym',
-    'Security System',
-    'Elevator',
+    'Piscina',
+    'Jardín',
+    'Aire Acondicionado',
+    'Hogar Inteligente',
+    'Balcón',
+    'Gimnasio',
+    'Sistema de Seguridad',
+    'Ascensor',
   ];
 
   return (
@@ -233,10 +244,10 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           <div className="px-8 py-6 border-b border-hint-of-green/30 flex items-center justify-between gap-3 bg-linear-to-r from-hint-of-green/10 to-transparent">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-hint-of-green flex items-center justify-center text-nordic">
-                <span className="material-icons text-lg">info</span>
+                <FiInfo className="text-lg" />
               </div>
               <h2 className="text-xl font-bold text-nordic">
-                Basic Information
+                Información Básica
               </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -249,7 +260,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   className="w-4 h-4 text-mosque border-gray-300 rounded focus:ring-mosque"
                 />
                 <span className="text-sm font-medium text-nordic transition-colors">
-                  Featured
+                  Destacada
                 </span>
               </label>
               <label
@@ -267,7 +278,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   className="w-4 h-4 border-gray-300 rounded"
                 />
                 <span className="text-sm font-medium">
-                  {formData.is_active ? 'Active' : 'Inactive'}
+                  {formData.is_active ? 'Activa' : 'Inactiva'}
                 </span>
               </label>
             </div>
@@ -278,7 +289,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 className="block text-sm font-medium text-nordic mb-1.5 font-sans"
                 htmlFor="title"
               >
-                Property Title <span className="text-red-500">*</span>
+                Título de la Propiedad <span className="text-red-500">*</span>
               </label>
               <input
                 id="title"
@@ -287,7 +298,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 value={formData.title}
                 onChange={handleInputChange}
                 className="w-full text-base px-4 py-2.5 rounded-md border-gray-200 bg-white text-nordic placeholder-gray-400 focus:ring-1 focus:ring-mosque focus:border-mosque transition-all font-sans"
-                placeholder="e.g. Modern Penthouse with Ocean View"
+                placeholder="ej. Penthouse Moderno con Vista al Mar"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -296,7 +307,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   className="block text-sm font-medium text-nordic mb-1.5 font-sans"
                   htmlFor="price"
                 >
-                  Price <span className="text-red-500">*</span>
+                  Precio <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-sans text-sm">
@@ -320,7 +331,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   className="block text-sm font-medium text-nordic mb-1.5 font-sans"
                   htmlFor="type"
                 >
-                  Property Type
+                  Tipo de Propiedad
                 </label>
                 <select
                   id="type"
@@ -328,8 +339,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 rounded-md border-gray-200 bg-white text-nordic focus:ring-1 focus:ring-mosque focus:border-mosque transition-all text-base font-sans cursor-pointer"
                 >
-                  <option value="sale">For Sale</option>
-                  <option value="rent">For Rent</option>
+                  <option value="sale">En Venta</option>
+                  <option value="rent">En Alquiler</option>
                 </select>
               </div>
             </div>
@@ -339,9 +350,9 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-8 py-6 border-b border-hint-of-green/30 flex items-center gap-3 bg-linear-to-r from-hint-of-green/10 to-transparent">
             <div className="w-8 h-8 rounded-full bg-hint-of-green flex items-center justify-center text-nordic">
-              <span className="material-icons text-lg">description</span>
+                <FiFileText className="text-lg" />
             </div>
-            <h2 className="text-xl font-bold text-nordic">Description</h2>
+            <h2 className="text-xl font-bold text-nordic">Descripción</h2>
           </div>
           <div className="p-8">
             <div className="mb-3 flex gap-2 border-b border-gray-100 pb-2">
@@ -350,23 +361,21 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 className="p-1.5 text-gray-400 hover:text-nordic hover:bg-gray-50 rounded transition-colors"
                 title="Bold"
               >
-                <span className="material-icons text-lg">format_bold</span>
+                <FiBold className="text-lg" />
               </button>
               <button
                 type="button"
                 className="p-1.5 text-gray-400 hover:text-nordic hover:bg-gray-50 rounded transition-colors"
                 title="Italic"
               >
-                <span className="material-icons text-lg">format_italic</span>
+                <FiItalic className="text-lg" />
               </button>
               <button
                 type="button"
                 className="p-1.5 text-gray-400 hover:text-nordic hover:bg-gray-50 rounded transition-colors"
                 title="List"
               >
-                <span className="material-icons text-lg">
-                  format_list_bulleted
-                </span>
+                <FiList className="text-lg" />
               </button>
             </div>
             <textarea
@@ -374,10 +383,10 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
               value={formData.description}
               onChange={handleInputChange}
               className="w-full px-4 py-3 rounded-md border-gray-200 bg-white text-nordic placeholder-gray-400 focus:ring-1 focus:ring-mosque focus:border-mosque transition-all text-base font-sans leading-relaxed resize-y min-h-[200px]"
-              placeholder="Describe the property features, neighborhood, and unique selling points..."
+              placeholder="Describe las características, el vecindario y puntos destacados..."
             />
             <div className="mt-2 text-right text-xs text-gray-400 font-sans">
-              {(formData.description || '').length} / 2000 characters
+              {(formData.description || '').length} / 2000 caracteres
             </div>
           </div>
         </div>
@@ -386,9 +395,9 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           <div className="px-8 py-6 border-b border-hint-of-green/30 flex justify-between items-center bg-linear-to-r from-hint-of-green/10 to-transparent">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-hint-of-green flex items-center justify-center text-nordic">
-                <span className="material-icons text-lg">image</span>
+                <FiImage className="text-lg" />
               </div>
-              <h2 className="text-xl font-bold text-nordic">Gallery</h2>
+              <h2 className="text-xl font-bold text-nordic">Galería</h2>
             </div>
             <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded font-sans">
               JPG, PNG, WEBP
@@ -405,14 +414,14 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
               />
               <div className="flex flex-col items-center justify-center space-y-3">
                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-mosque group-hover:scale-110 transition-transform duration-300">
-                  <span className="material-icons text-2xl">cloud_upload</span>
+                  <FiUploadCloud className="text-2xl" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-base font-medium text-nordic font-sans">
-                    Click or drag images here
+                    Haz clic o arrastra imágenes aquí
                   </p>
                   <p className="text-xs text-gray-400 font-sans">
-                    Max file size 5MB per image
+                    Tamaño máximo 5MB por imagen
                   </p>
                 </div>
               </div>
@@ -437,12 +446,12 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                         onClick={() => removeImage(index)}
                         className="w-8 h-8 rounded-full bg-white text-red-500 hover:bg-red-50 flex items-center justify-center transition-colors shadow-sm"
                       >
-                        <span className="material-icons text-sm">delete</span>
+                        <FiTrash2 className="text-sm" />
                       </button>
                     </div>
                     {index === 0 && (
                       <span className="absolute top-2 left-2 bg-mosque text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm font-sans uppercase tracking-wider">
-                        Main
+                        Principal
                       </span>
                     )}
                   </div>
@@ -457,9 +466,9 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-hint-of-green/30 flex items-center gap-3 bg-linear-to-r from-hint-of-green/10 to-transparent">
             <div className="w-8 h-8 rounded-full bg-hint-of-green flex items-center justify-center text-nordic">
-              <span className="material-icons text-lg">place</span>
+              <FiMapPin className="text-lg" />
             </div>
-            <h2 className="text-lg font-bold text-nordic">Location</h2>
+            <h2 className="text-lg font-bold text-nordic">Ubicación</h2>
           </div>
           <div className="p-6 space-y-4">
             <div>
@@ -467,7 +476,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 className="block text-sm font-medium text-nordic mb-1.5 font-sans"
                 htmlFor="location"
               >
-                Address <span className="text-red-500">*</span>
+                Dirección <span className="text-red-500">*</span>
               </label>
               <input
                 id="location"
@@ -476,7 +485,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 value={formData.location}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2.5 rounded-md border-gray-200 bg-white text-nordic placeholder-gray-400 focus:ring-1 focus:ring-mosque focus:border-mosque transition-all text-sm font-sans"
-                placeholder="Street Address, City, Zip"
+                placeholder="Calle, Ciudad, Código Postal"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -485,7 +494,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   className="block text-sm font-medium text-nordic mb-1.5 font-sans"
                   htmlFor="lat"
                 >
-                  Latitude
+                  Latitud
                 </label>
                 <input
                   id="lat"
@@ -494,7 +503,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   value={formData.lat ?? ''}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 rounded-md border-gray-200 bg-white text-nordic placeholder-gray-400 focus:ring-1 focus:ring-mosque focus:border-mosque transition-all text-sm font-sans"
-                  placeholder="e.g. 40.7128"
+                  placeholder="ej. 40.7128"
                 />
               </div>
               <div>
@@ -502,7 +511,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   className="block text-sm font-medium text-nordic mb-1.5 font-sans"
                   htmlFor="lng"
                 >
-                  Longitude
+                  Longitud
                 </label>
                 <input
                   id="lng"
@@ -511,7 +520,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   value={formData.lng ?? ''}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 rounded-md border-gray-200 bg-white text-nordic placeholder-gray-400 focus:ring-1 focus:ring-mosque focus:border-mosque transition-all text-sm font-sans"
-                  placeholder="e.g. -74.0060"
+                  placeholder="ej. -74.0060"
                 />
               </div>
             </div>
@@ -534,10 +543,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <span className="bg-white/90 text-nordic px-3 py-1.5 rounded shadow-sm backdrop-blur-sm text-xs font-bold font-sans flex items-center gap-1">
-                    <span className="material-icons text-sm text-mosque">
-                      map
-                    </span>{' '}
-                    Map Location
+                    <FiMap className="text-sm text-mosque" />{' '}
+                    Ubicación en el Mapa
                   </span>
                 </div>
               </div>
@@ -548,9 +555,9 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden lg:sticky lg:top-24">
           <div className="px-6 py-4 border-b border-hint-of-green/30 flex items-center gap-3 bg-linear-to-r from-hint-of-green/10 to-transparent">
             <div className="w-8 h-8 rounded-full bg-hint-of-green flex items-center justify-center text-nordic">
-              <span className="material-icons text-lg">straighten</span>
+              <FiMinimize2 className="text-lg" />
             </div>
-            <h2 className="text-lg font-bold text-nordic">Details</h2>
+            <h2 className="text-lg font-bold text-nordic">Detalles</h2>
           </div>
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -559,7 +566,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   className="text-xs text-gray-500 font-medium font-sans mb-1 block"
                   htmlFor="sqft"
                 >
-                  Area (sqft)
+                  Área (m²)
                 </label>
                 <input
                   id="sqft"
@@ -576,7 +583,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   className="text-xs text-gray-500 font-medium font-sans mb-1 block"
                   htmlFor="year_built"
                 >
-                  Year Built
+                  Año de Construcción
                 </label>
                 <input
                   id="year_built"
@@ -594,10 +601,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-nordic font-sans flex items-center gap-2">
-                  <span className="material-icons text-gray-400 text-sm">
-                    bed
-                  </span>{' '}
-                  Bedrooms
+                  <FiHome className="text-gray-400 text-sm" />{' '}
+                  Dormitorios
                 </label>
                 <div className="flex items-center border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm">
                   <button
@@ -625,10 +630,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-nordic font-sans flex items-center gap-2">
-                  <span className="material-icons text-gray-400 text-sm">
-                    shower
-                  </span>{' '}
-                  Bathrooms
+                  <FiDroplet className="text-gray-400 text-sm" />{' '}
+                  Baños
                 </label>
                 <div className="flex items-center border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm">
                   <button
@@ -656,10 +659,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-nordic font-sans flex items-center gap-2">
-                  <span className="material-icons text-gray-400 text-sm">
-                    directions_car
-                  </span>{' '}
-                  Parking
+                  <FiNavigation className="text-gray-400 text-sm" />{' '}
+                  Estacionamiento
                 </label>
                 <div className="flex items-center border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm">
                   <button
@@ -690,7 +691,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
             <div>
               <h3 className="text-sm font-bold text-nordic mb-3 font-sans uppercase tracking-wider">
-                Amenities
+Comodidades
               </h3>
               <div className="space-y-2">
                 {AMENITIES_LIST.map((amenity) => (
@@ -721,7 +722,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           onClick={() => router.push('/admin/properties')}
           className="flex-1 py-3 rounded-lg border border-gray-300 bg-white text-nordic font-medium font-sans"
         >
-          Cancel
+          Cancelar
         </button>
         <button
           type="submit"
@@ -729,9 +730,9 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           className="flex-1 py-3 rounded-lg bg-mosque text-white font-medium font-sans flex justify-center items-center gap-2 disabled:opacity-50"
         >
           {isLoading ? (
-            <span className="material-icons animate-spin">refresh</span>
+            <FiRefreshCw className="animate-spin" />
           ) : (
-            'Save'
+            'Guardar'
           )}
         </button>
       </div>
@@ -743,7 +744,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           onClick={() => router.back()}
           className="px-6 py-2.5 rounded-lg border border-gray-300 bg-white text-nordic font-medium hover:bg-gray-50 transition-colors"
         >
-          Cancel
+          Cancelar
         </button>
         <button
           type="submit"
@@ -751,11 +752,11 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           className="px-6 py-2.5 rounded-lg bg-mosque hover:bg-mosque/90 text-white font-medium shadow-md transition-colors disabled:opacity-50 flex items-center gap-2"
         >
           {isLoading ? (
-            <span className="material-icons animate-spin">refresh</span>
+            <FiRefreshCw className="animate-spin" />
           ) : (
             <>
-              <span className="material-icons text-sm">save</span>
-              Save Property
+              <FiSave className="text-sm" />
+              Guardar Propiedad
             </>
           )}
         </button>

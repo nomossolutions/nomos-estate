@@ -1,22 +1,66 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { cookies } from 'next/headers';
-import { getDictionary } from '@/lib/i18n';
-import LanguageSelector from './LanguageSelector';
-import { createClient } from '@/lib/supabase/server';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { FiHome, FiUser, FiMenu, FiX } from 'react-icons/fi';
+import type { User } from '@supabase/supabase-js';
 import LogoutButton from './LogoutButton';
+import content from '@/lib/i18n';
 
-const Navbar = async () => {
-  const cookieStore = await cookies();
-  const locale = cookieStore.get('NEXT_LOCALE')?.value || 'es';
-  const dict = getDictionary(locale);
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default function Navbar() {
+  const pathname = usePathname();
+  const supabase = createClient();
+  const dict = content.navbar;
+  const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const closeMobile = () => setIsMobileOpen(false);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      if (user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        setIsAdmin(roleData?.role === 'admin');
+      }
+    };
+    getUser();
+  }, [supabase]);
+
+  const isActive = (href: string) => {
+    if (href === '/admin' && pathname === '/admin') return true;
+    if (href === '/admin/properties' && pathname.startsWith('/admin/properties')) return true;
+    if (href === '/admin/users' && pathname.startsWith('/admin/users')) return true;
+    if (href === '/' && pathname === '/') return true;
+    if (href === '/about' && pathname === '/about') return true;
+    return false;
+  };
+
+  const linkClass = (href: string) => {
+    return isActive(href)
+      ? 'text-white font-bold border-b-2 border-white'
+      : 'text-white/70 hover:text-white font-medium border-b-2 border-transparent hover:border-white/20';
+  };
+
+  const mobileLinkClass = (href: string) => {
+    return isActive(href)
+      ? 'block px-3 py-2 rounded-md text-base font-medium text-white bg-white/10'
+      : 'block px-3 py-2 rounded-md text-base font-medium text-white/80 hover:bg-white/10';
+  };
+
+  const isAuthenticated = !!user;
 
   return (
-    <nav className="sticky top-0 z-50 bg-clear-day/95 backdrop-blur-md border-b border-nordic/10">
+    <nav className="sticky top-0 z-50 bg-nordic border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -24,121 +68,166 @@ const Navbar = async () => {
             href="/"
             className="shrink-0 flex items-center gap-2 cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-lg bg-nordic flex items-center justify-center">
-              <span className="material-icons text-white text-lg font-material-icons">
-                apartment
-              </span>
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+              <FiHome className="text-white text-lg" />
             </div>
-            <span className="text-xl font-semibold tracking-tight text-nordic">
-              LuxeEstate
+            <span className="text-xl font-semibold tracking-tight text-white">
+              NomosEstate
             </span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="#"
-              className="text-mosque font-medium text-sm border-b-2 border-mosque px-1 py-1"
-            >
-              {dict.navbar.buy}
-            </Link>
-            <Link
-              href="#"
-              className="text-nordic/70 hover:text-nordic font-medium text-sm hover:border-b-2 hover:border-nordic/20 px-1 py-1 transition-all"
-            >
-              {dict.navbar.rent}
-            </Link>
-            <Link
-              href="#"
-              className="text-nordic/70 hover:text-nordic font-medium text-sm hover:border-b-2 hover:border-nordic/20 px-1 py-1 transition-all"
-            >
-              {dict.navbar.sell}
-            </Link>
-            <Link
-              href="#"
-              className="text-nordic/70 hover:text-nordic font-medium text-sm hover:border-b-2 hover:border-nordic/20 px-1 py-1 transition-all"
-            >
-              {dict.navbar.saved_homes}
-            </Link>
+            {isAdmin ? (
+              <>
+                <Link
+                  href="/"
+                  className={`px-1 py-1 text-sm transition-all ${linkClass('/')}`}
+                >
+                  Inicio
+                </Link>
+                <Link
+                  href="/admin/properties"
+                  className={`px-1 py-1 text-sm transition-all ${linkClass('/admin/properties')}`}
+                >
+                  Propiedades
+                </Link>
+                <Link
+                  href="/admin/users"
+                  className={`px-1 py-1 text-sm transition-all ${linkClass('/admin/users')}`}
+                >
+                  Usuarios
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/#hero"
+                  className="text-white/70 hover:text-white font-medium text-sm hover:border-b-2 hover:border-white/20 px-1 py-1 transition-all"
+                >
+                  {dict.home}
+                </Link>
+                <Link
+                  href="/#properties"
+                  className="text-white/70 hover:text-white font-medium text-sm hover:border-b-2 hover:border-white/20 px-1 py-1 transition-all"
+                >
+                  {dict.properties}
+                </Link>
+                <Link
+                  href="/about"
+                  className={`px-1 py-1 text-sm transition-all ${linkClass('/about')}`}
+                >
+                  {dict.about}
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-6">
-            <button className="text-nordic hover:text-mosque transition-colors">
-              <span className="material-icons font-material-icons">search</span>
-            </button>
-            <button className="text-nordic hover:text-mosque transition-colors relative">
-              <span className="material-icons font-material-icons">
-                notifications_none
-              </span>
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-clear-day"></span>
-            </button>
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setIsMobileOpen(!isMobileOpen)}
+            className="md:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none"
+            aria-label={isMobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={isMobileOpen}
+          >
+            {isMobileOpen ? <FiX className="text-xl" /> : <FiMenu className="text-xl" />}
+          </button>
 
-            {/* Profile */}
-            {user ? (
-              <div className="flex items-center">
-                <button className="flex items-center gap-2 pl-2 border-l border-nordic/10 ml-2">
-                  <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden ring-2 ring-transparent hover:ring-mosque transition-all relative">
-                    <Image
-                      src={
-                        user.user_metadata.avatar_url ||
-                        'https://lh3.googleusercontent.com/aida-public/AB6AXuCAWhQZ663Bd08kmzjbOPmUk4UIxYooNONShMEFXLR-DtmVi6Oz-TiaY77SPwFk7g0OobkeZEOMvt6v29mSOD0Xm2g95WbBG3ZjWXmiABOUwGUyLOySRfVDo-JTXQ0-gtwjWxbmue0qDm91m-zEOEZwAW6iRFB1qC1bAU-wkjxm67Sbztq8w7srHkFT9bVEC86qG-FzhOBTomhAurNRmx9l8Yfqabk328NfdKuVLckgCdaPsNFE3yN65MeoRi05GA_gXIMwG4YDIeA'
-                      }
-                      alt="Profile"
-                      fill
-                      className="object-cover"
-                    />
+          {/* Actions */}
+          <div className="flex items-center gap-4">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-2"
+                >
+                  <div className="w-9 h-9 rounded-full ring-2 ring-transparent hover:ring-mosque transition-all relative flex items-center justify-center overflow-hidden">
+                    {user?.user_metadata?.avatar_url ? (
+                      <Image
+                        src={user.user_metadata.avatar_url}
+                        alt="Profile"
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <FiUser className="text-gray-500 text-lg" />
+                      </div>
+                    )}
                   </div>
-                </button>
-                <div className="ml-2 pl-2 border-l border-nordic/10 flex items-center">
-                  <LogoutButton />
-                </div>
+                </Link>
+                <LogoutButton />
               </div>
             ) : (
               <Link
                 href="/login"
-                className="text-nordic hover:text-mosque font-medium text-sm pl-2 border-l border-nordic/10 ml-2 transition-colors"
+                className="bg-mosque hover:bg-mosque/90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-black/10"
               >
-                {dict.navbar.login}
+                {dict.login}
               </Link>
             )}
-
-            <LanguageSelector currentLocale={locale} />
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu (Hidden by default for now as per design) */}
-      <div className="md:hidden border-t border-nordic/5 bg-clear-day overflow-hidden h-0 transition-all duration-300">
+      {/* Mobile Menu */}
+      <div
+        className={`md:hidden border-t border-white/10 bg-nordic overflow-hidden transition-all duration-300 ${isMobileOpen ? 'max-h-96' : 'max-h-0'}`}
+        role="navigation"
+        aria-label="Menú de navegación móvil"
+      >
         <div className="px-4 py-2 space-y-1">
-          <Link
-            href="#"
-            className="block px-3 py-2 rounded-md text-base font-medium text-mosque bg-mosque/10"
-          >
-            {dict.navbar.buy}
-          </Link>
-          <Link
-            href="#"
-            className="block px-3 py-2 rounded-md text-base font-medium text-nordic hover:bg-black/5"
-          >
-            {dict.navbar.rent}
-          </Link>
-          <Link
-            href="#"
-            className="block px-3 py-2 rounded-md text-base font-medium text-nordic hover:bg-black/5"
-          >
-            {dict.navbar.sell}
-          </Link>
-          <Link
-            href="#"
-            className="block px-3 py-2 rounded-md text-base font-medium text-nordic hover:bg-black/5"
-          >
-            {dict.navbar.saved_homes}
-          </Link>
+          {isAdmin ? (
+            <>
+              <Link
+                href="/"
+                onClick={closeMobile}
+                className={mobileLinkClass('/')}
+              >
+                Inicio
+              </Link>
+              <Link
+                href="/admin/properties"
+                onClick={closeMobile}
+                className={mobileLinkClass('/admin/properties')}
+              >
+                Propiedades
+              </Link>
+              <Link
+                href="/admin/users"
+                onClick={closeMobile}
+                className={mobileLinkClass('/admin/users')}
+              >
+                Usuarios
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/#hero"
+                onClick={closeMobile}
+                className="block px-3 py-2 rounded-md text-base font-medium text-white/80 hover:bg-white/10"
+              >
+                {dict.home}
+              </Link>
+              <Link
+                href="/#properties"
+                onClick={closeMobile}
+                className="block px-3 py-2 rounded-md text-base font-medium text-white/80 hover:bg-white/10"
+              >
+                {dict.properties}
+              </Link>
+              <Link
+                href="/about"
+                onClick={closeMobile}
+                className="block px-3 py-2 rounded-md text-base font-medium text-white/80 hover:bg-white/10"
+              >
+                {dict.about}
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>
   );
-};
-
-export default Navbar;
+}

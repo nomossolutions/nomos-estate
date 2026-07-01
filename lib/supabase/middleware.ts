@@ -40,8 +40,7 @@ export async function updateSession(request: NextRequest) {
 
   // Redirect non-authenticated users to login page if they try to access protected routes
   const isAuthRoute =
-    request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/register');
+    request.nextUrl.pathname.startsWith('/login');
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
 
   if (!user && isAdminRoute) {

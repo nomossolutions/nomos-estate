@@ -1,3 +1,4 @@
+import { FiHeart, FiMapPin, FiHome, FiDroplet, FiMove } from 'react-icons/fi';
 import Image from 'next/image';
 import { Collection } from '@/data/mockData';
 import Link from 'next/link';
@@ -10,12 +11,12 @@ const CollectionCard = ({ collection }: CollectionCardProps) => {
   return (
     <Link
       href={`/properties/${collection.slug || collection.id}`}
-      className="block group relative rounded-xl overflow-hidden shadow-soft bg-white cursor-pointer"
+      className="block group relative rounded-lg overflow-hidden shadow-soft bg-white cursor-pointer"
     >
       {/* Image Container */}
       <div className="aspect-4/3 w-full overflow-hidden relative">
         <Image
-          src={collection.images[0]}
+          src={collection.images?.[0] ?? '/placeholder.jpg'}
           alt={collection.title}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -27,10 +28,11 @@ const CollectionCard = ({ collection }: CollectionCardProps) => {
         </div>
 
         {/* Favorite Button */}
-        <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-nordic hover:bg-mosque hover:text-white transition-all z-10">
-          <span className="material-icons text-xl font-material-icons">
-            favorite_border
-          </span>
+        <button
+          aria-label="Añadir a favoritos"
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-nordic hover:bg-mosque hover:text-white transition-all z-10 focus-visible:ring-2 focus-visible:ring-mosque focus-visible:outline-none"
+        >
+          <FiHeart className="text-xl" />
         </button>
 
         {/* Gradient Overlay */}
@@ -41,13 +43,11 @@ const CollectionCard = ({ collection }: CollectionCardProps) => {
       <div className="p-6 relative">
         <div className="flex justify-between items-start mb-2">
           <div>
-            <h3 className="text-xl font-medium text-nordic group-hover:text-mosque transition-colors">
+            <h3 className="text-xl font-medium text-nordic group-hover:text-mosque transition-colors font-display">
               {collection.title}
             </h3>
             <p className="text-nordic-muted text-sm flex items-center gap-1 mt-1">
-              <span className="material-icons text-sm font-material-icons">
-                place
-              </span>{' '}
+              <FiMapPin className="text-sm" />{' '}
               {collection.location}
             </p>
           </div>
@@ -59,21 +59,15 @@ const CollectionCard = ({ collection }: CollectionCardProps) => {
         {/* Features */}
         <div className="flex items-center gap-6 mt-6 pt-6 border-t border-nordic/5">
           <div className="flex items-center gap-2 text-nordic-muted text-sm">
-            <span className="material-icons text-lg font-material-icons">
-              king_bed
-            </span>{' '}
-            {collection.beds} Beds
+            <FiHome className="text-lg" />{' '}
+            {collection.beds} Dorm.
           </div>
           <div className="flex items-center gap-2 text-nordic-muted text-sm">
-            <span className="material-icons text-lg font-material-icons">
-              bathtub
-            </span>{' '}
-            {collection.baths} Baths
+            <FiDroplet className="text-lg" />{' '}
+            {collection.baths} Baños
           </div>
           <div className="flex items-center gap-2 text-nordic-muted text-sm">
-            <span className="material-icons text-lg font-material-icons">
-              square_foot
-            </span>{' '}
+            <FiMove className="text-lg" />{' '}
             {collection.sqft.toLocaleString()} m²
           </div>
         </div>

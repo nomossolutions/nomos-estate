@@ -1,5 +1,7 @@
 export type PropertyType = 'sale' | 'rent';
 
+export type PropertyInsert = Omit<Property, 'id' | 'created_at'>;
+
 export interface Property {
   id: string;
   title: string;

@@ -1,15 +1,15 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #eef6f6; /* Clear Day */
-  --foreground: #19322f; /* Nordic */
+  --background: #F5F0EB; /* Warm Ivory */
+  --foreground: #58111A; /* Night Bordeaux */
 
   /* Custom Palette */
-  --nordic: #19322f;
-  --mosque: #006655;
-  --hint-of-green: #d9ecc8;
-  --clear-day: #eef6f6;
-  --nordic-muted: #5c706d;
+  --nordic: #58111A;        /* Night Bordeaux */
+  --mosque: #C8A45C;        /* Gold */
+  --hint-of-green: #EDE0D4; /* Champagne */
+  --clear-day: #F5F0EB;     /* Warm Ivory */
+  --nordic-muted: #7A6063;  /* Muted Mauve */
 }
 
 @theme inline {
@@ -20,8 +20,10 @@
   --color-hint-of-green: var(--hint-of-green);
   --color-clear-day: var(--clear-day);
   --color-nordic-muted: var(--nordic-muted);
+  --color-nordic-hover: #6a151f;
 
-  --font-display: 'Inter', sans-serif;
+  --font-body: var(--font-inter);
+  --font-display: var(--font-sora);
 
   --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
   --shadow-card:
@@ -31,7 +33,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -42,4 +44,14 @@ body {
 .hide-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

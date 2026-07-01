@@ -37,7 +37,7 @@ export default function PropertyMap({ lat, lng, address }: PropertyMapProps) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <Marker position={[lat, lng]}>
-          <Popup>{address || 'Property Location'}</Popup>
+          <Popup>{address || 'Ubicación de la propiedad'}</Popup>
         </Marker>
       </MapContainer>
     </div>

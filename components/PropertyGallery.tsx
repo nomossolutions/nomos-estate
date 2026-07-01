@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { FiGrid } from 'react-icons/fi';
 import Image from 'next/image';
 
 interface PropertyGalleryProps {
@@ -18,10 +19,10 @@ export default function PropertyGallery({
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-16/10 overflow-hidden rounded-xl shadow-sm group">
+      <div className="relative aspect-16/10 overflow-hidden rounded-lg shadow-sm group">
         <Image
           src={images[activeImage]}
-          alt={`${title} - Main View`}
+          alt={`${title} - Vista Principal`}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"
           sizes="(max-width: 1024px) 100vw, 66vw"
@@ -33,8 +34,8 @@ export default function PropertyGallery({
           </span>
         </div>
         <button className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-nordic px-4 py-2 rounded-lg text-sm font-medium shadow-lg backdrop-blur transition-all flex items-center gap-2">
-          <span className="material-icons text-sm">grid_view</span>
-          View All {images.length} Photos
+          <FiGrid className="text-sm" />
+          Ver todas las {images.length} fotos
         </button>
       </div>
 
