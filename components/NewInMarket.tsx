@@ -29,6 +29,17 @@ const NewInMarket = ({
             Oportunidades frescas agregadas esta semana.
           </p>
         </div>
+        <div className="flex md:hidden overflow-x-auto hide-scroll gap-2 -mx-4 px-4">
+          <button className="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-medium bg-nordic text-white shadow-sm">
+            Todas
+          </button>
+          <button className="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-medium bg-white text-nordic-muted border border-nordic/10 hover:text-nordic">
+            Comprar
+          </button>
+          <button className="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-medium bg-white text-nordic-muted border border-nordic/10 hover:text-nordic">
+            Alquilar
+          </button>
+        </div>
         <div className="hidden md:flex bg-white p-1 rounded-lg">
           <button className="px-4 py-1.5 rounded-md text-sm font-medium bg-nordic text-white shadow-sm">
             Todas

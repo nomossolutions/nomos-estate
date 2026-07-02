@@ -716,7 +716,7 @@ Comodidades
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:hidden z-40 flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:hidden z-40 flex gap-3">
         <button
           type="button"
           onClick={() => router.push('/admin/properties')}
@@ -738,7 +738,7 @@ Comodidades
       </div>
 
       {/* Desktop sticky action bar (optional but nice for long forms) */}
-      <div className="hidden md:flex xl:col-span-12 justify-end gap-3 sticky bottom-0 bg-clear-day/90 backdrop-blur-sm py-4 border-t border-nordic/5 z-40">
+      <div className="hidden md:flex xl:col-span-12 justify-end gap-3 sticky bottom-0 bg-clear-day/90 backdrop-blur-sm py-4 pb-safe border-t border-nordic/5 z-40">
         <button
           type="button"
           onClick={() => router.back()}

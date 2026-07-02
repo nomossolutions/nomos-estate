@@ -50,23 +50,23 @@ export default async function AdminUsersPage(props: {
                 type="text"
               />
             </div>
-            <button className="bg-mosque hover:bg-mosque/90 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md shadow-mosque/20 transition-all transform hover:-translate-y-0.5 inline-flex items-center justify-center gap-2 whitespace-nowrap">
+            <button className="bg-mosque hover:bg-mosque/90 text-white px-5 py-2.5 min-h-[44px] rounded-lg text-sm font-medium shadow-md shadow-mosque/20 transition-all transform hover:-translate-y-0.5 inline-flex items-center justify-center gap-2 whitespace-nowrap">
               <FiPlus className="text-base" />
               Añadir Usuario
             </button>
           </div>
         </div>
-        <div className="mt-8 flex gap-6 border-b border-nordic/10 overflow-x-auto">
-          <button className="pb-3 text-sm font-semibold text-mosque border-b-2 border-mosque">
+        <div className="mt-8 flex gap-6 border-b border-nordic/10 overflow-x-auto hide-scroll">
+          <button className="whitespace-nowrap pb-3 text-sm font-semibold text-mosque border-b-2 border-mosque min-h-[44px]">
             Todos los Usuarios
           </button>
-          <button className="pb-3 text-sm font-medium text-nordic/60 hover:text-nordic transition-colors">
+          <button className="whitespace-nowrap pb-3 text-sm font-medium text-nordic/60 hover:text-nordic transition-colors min-h-[44px]">
             Agentes
           </button>
-          <button className="pb-3 text-sm font-medium text-nordic/60 hover:text-nordic transition-colors">
+          <button className="whitespace-nowrap pb-3 text-sm font-medium text-nordic/60 hover:text-nordic transition-colors min-h-[44px]">
             Corredores
           </button>
-          <button className="pb-3 text-sm font-medium text-nordic/60 hover:text-nordic transition-colors">
+          <button className="whitespace-nowrap pb-3 text-sm font-medium text-nordic/60 hover:text-nordic transition-colors min-h-[44px]">
             Administradores
           </button>
         </div>
@@ -144,41 +144,56 @@ export default async function AdminUsersPage(props: {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-nordic/10 bg-gray-50/50 rounded-xl mt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-nordic/10 bg-gray-50/50 rounded-xl mt-6">
             <div className="text-sm text-nordic/60">
               Mostrando{' '}
-              <span className="font-medium text-nordic">{from + 1}</span> to{' '}
+              <span className="font-medium text-nordic">{from + 1}</span> -{' '}
               <span className="font-medium text-nordic">
                 {Math.min(to, count)}
               </span>{' '}
-              of <span className="font-medium text-nordic">{count}</span>{' '}
+              de <span className="font-medium text-nordic">{count}</span>{' '}
               resultados
             </div>
             <div className="flex items-center gap-2">
               <Link
                 href={`/admin/users?page=${Math.max(1, page - 1)}`}
-                className={`p-2 rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === 1 ? 'pointer-events-none opacity-50' : ''}`}
+                className={`min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === 1 ? 'pointer-events-none opacity-50' : ''}`}
               >
-                <FiChevronLeft className="text-xl block" />
+                <FiChevronLeft className="text-xl" />
               </Link>
               <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (p) => (
-                    <Link
-                      key={p}
-                      href={`/admin/users?page=${p}`}
-                      className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${page === p ? 'bg-mosque text-white' : 'text-nordic/60 hover:text-nordic hover:bg-gray-100'}`}
-                    >
-                      {p}
-                    </Link>
-                  ),
-                )}
+                {(() => {
+                  const getPages = (current: number, total: number) => {
+                    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+                    const p: (number | string)[] = [1];
+                    if (current > 3) p.push('...');
+                    const start = Math.max(2, current - 1);
+                    const end = Math.min(total - 1, current + 1);
+                    for (let i = start; i <= end; i++) p.push(i);
+                    if (current < total - 2) p.push('...');
+                    p.push(total);
+                    return p;
+                  };
+                  return getPages(page, totalPages).map((p, idx) =>
+                    p === '...' ? (
+                      <span key={`e-${idx}`} className="w-6 text-center text-nordic/40 text-sm select-none">...</span>
+                    ) : (
+                      <Link
+                        key={p}
+                        href={`/admin/users?page=${p}`}
+                        className={`min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${page === p ? 'bg-mosque text-white' : 'text-nordic/60 hover:text-nordic hover:bg-gray-100'}`}
+                      >
+                        {p}
+                      </Link>
+                    ),
+                  );
+                })()}
               </div>
               <Link
                 href={`/admin/users?page=${Math.min(totalPages, page + 1)}`}
-                className={`p-2 rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === totalPages ? 'pointer-events-none opacity-50' : ''}`}
+                className={`min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === totalPages ? 'pointer-events-none opacity-50' : ''}`}
               >
-                <FiChevronRight className="text-xl block" />
+                <FiChevronRight className="text-xl" />
               </Link>
             </div>
           </div>

@@ -8,9 +8,9 @@ const Footer = () => {
   return (
     <footer className="bg-nordic mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10">
           {/* Brand */}
-          <div className="md:col-span-4">
+          <div className="lg:col-span-5">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                 <FiHome className="text-white text-lg" />
@@ -25,7 +25,7 @@ const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="md:col-span-2 md:col-start-6">
+          <div className="lg:col-span-3 lg:col-start-7">
             <h4 className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-5">
               {f.quick_links}
             </h4>
@@ -49,7 +49,7 @@ const Footer = () => {
           </div>
 
           {/* Contact */}
-          <div className="md:col-span-2">
+          <div className="lg:col-span-3">
             <h4 className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-5">
               {f.contact}
             </h4>

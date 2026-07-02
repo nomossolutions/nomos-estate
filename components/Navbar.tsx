@@ -60,7 +60,7 @@ export default function Navbar() {
   const isAuthenticated = !!user;
 
   return (
-    <nav className="sticky top-0 z-50 bg-nordic border-b border-white/10">
+    <nav className="sticky top-0 z-50 bg-nordic border-b border-white/10 pt-safe">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -124,17 +124,19 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setIsMobileOpen(!isMobileOpen)}
-            className="md:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none"
-            aria-label={isMobileOpen ? 'Cerrar menú' : 'Abrir menú'}
-            aria-expanded={isMobileOpen}
-          >
-            {isMobileOpen ? <FiX className="text-xl" /> : <FiMenu className="text-xl" />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <button
+              onClick={() => setIsMobileOpen(!isMobileOpen)}
+              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none"
+              aria-label={isMobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+              aria-expanded={isMobileOpen}
+            >
+              {isMobileOpen ? <FiX className="text-xl" /> : <FiMenu className="text-xl" />}
+            </button>
+          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-4">
+          {/* Actions - Desktop only */}
+          <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <Link
@@ -156,7 +158,7 @@ export default function Navbar() {
                     )}
                   </div>
                 </Link>
-                <LogoutButton />
+                <LogoutButton className="text-white/70 hover:text-red-400 transition-colors flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/10 text-sm font-medium" />
               </div>
             ) : (
               <Link
@@ -225,6 +227,46 @@ export default function Navbar() {
                 {dict.about}
               </Link>
             </>
+          )}
+          {/* Divider */}
+          <div className="border-t border-white/10 my-2"></div>
+          {/* Mobile auth */}
+          {isAuthenticated ? (
+            <div className="space-y-1">
+              <Link
+                href="/admin"
+                onClick={closeMobile}
+                className="block px-3 py-2 rounded-md text-base font-medium text-white/80 hover:bg-white/10"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center overflow-hidden shrink-0">
+                    {user?.user_metadata?.avatar_url ? (
+                      <Image
+                        src={user.user_metadata.avatar_url}
+                        alt="Profile"
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                      />
+                    ) : (
+                      <FiUser className="text-white text-sm" />
+                    )}
+                  </div>
+                  <span>Mi Perfil</span>
+                </div>
+              </Link>
+              <LogoutButton className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-base font-medium text-white/80 hover:bg-white/10" />
+            </div>
+          ) : (
+            <div className="px-3 py-2">
+              <Link
+                href="/login"
+                onClick={closeMobile}
+                className="block w-full text-center bg-mosque hover:bg-mosque/90 text-white text-sm font-semibold px-5 py-3 rounded-lg transition-all"
+              >
+                {dict.login}
+              </Link>
+            </div>
           )}
         </div>
       </div>

@@ -5,7 +5,11 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-export default function LogoutButton() {
+interface LogoutButtonProps {
+  className?: string;
+}
+
+export default function LogoutButton({ className }: LogoutButtonProps) {
   const supabase = createClient();
   const router = useRouter();
 
@@ -18,10 +22,10 @@ export default function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="text-white/70 hover:text-red-400 transition-colors ml-4 flex items-center justify-center p-1 rounded-md hover:bg-white/10"
-      title="Cerrar sesión"
+      className={className || "text-white/70 hover:text-red-400 transition-colors flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/10 text-sm font-medium"}
     >
-      <FiLogOut className="text-xl" />
+      <FiLogOut className="text-lg" />
+      Cerrar Sesión
     </button>
   );
 }

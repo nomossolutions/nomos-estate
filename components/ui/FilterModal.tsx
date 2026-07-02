@@ -110,8 +110,8 @@ export default function FilterModal({
       <div className="fixed inset-0 z-110 flex items-center justify-center p-4 pointer-events-none">
         <main className="relative w-full max-w-2xl bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] pointer-events-auto">
           {/* Header */}
-          <header className="px-8 py-6 border-b border-nordic/10 flex justify-between items-center bg-white sticky top-0 z-30">
-            <h1 className="text-2xl font-semibold tracking-tight text-nordic font-display">
+          <header className="px-4 sm:px-6 lg:px-8 py-6 border-b border-nordic/10 flex justify-between items-center bg-white sticky top-0 z-30">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-nordic font-display">
               Filtros
             </h1>
             <button
@@ -123,7 +123,7 @@ export default function FilterModal({
           </header>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto hide-scroll p-8 space-y-10">
+          <div className="flex-1 overflow-y-auto hide-scroll p-4 sm:p-6 lg:p-8 space-y-10">
             {/* Section 1: Location */}
             <section>
               <label htmlFor="filter-location" className="block text-xs font-semibold text-nordic-muted uppercase tracking-wider mb-3">
@@ -305,18 +305,19 @@ export default function FilterModal({
           </div>
 
           {/* Footer */}
-          <footer className="bg-white border-t border-nordic/10 px-8 py-6 sticky bottom-0 z-30 flex items-center justify-between">
+          <footer className="bg-white border-t border-nordic/10 px-4 sm:px-6 lg:px-8 py-6 sticky bottom-0 z-30 flex items-center justify-between">
             <button
               onClick={handleClear}
-              className="text-sm font-medium text-nordic-muted hover:text-nordic transition-colors underline decoration-nordic/20 underline-offset-4 focus-visible:ring-2 focus-visible:ring-mosque focus-visible:outline-none rounded"
+              className="text-xs sm:text-sm font-medium text-nordic-muted hover:text-nordic transition-colors underline decoration-nordic/20 underline-offset-4 focus-visible:ring-2 focus-visible:ring-mosque focus-visible:outline-none rounded"
             >
               Limpiar filtros
             </button>
             <button
               onClick={handleApply}
-              className="bg-nordic hover:bg-nordic-hover text-white px-8 py-3 rounded-lg font-medium shadow-lg shadow-black/10 transition-all hover:shadow-black/20 flex items-center gap-2 transform active:scale-95 focus-visible:ring-2 focus-visible:ring-mosque focus-visible:outline-none"
+              className="bg-nordic hover:bg-nordic-hover text-white px-4 sm:px-8 py-3 rounded-lg font-medium shadow-lg shadow-black/10 transition-all hover:shadow-black/20 flex items-center gap-2 transform active:scale-95 focus-visible:ring-2 focus-visible:ring-mosque focus-visible:outline-none text-sm"
             >
-              {totalResults > 0 ? `Mostrar ${totalResults} Propiedades` : 'Mostrar Propiedades'}
+              <span className="hidden sm:inline">{totalResults > 0 ? `Mostrar ${totalResults} Propiedades` : 'Mostrar Propiedades'}</span>
+              <span className="sm:hidden">{totalResults > 0 ? `${totalResults} Prop.` : 'Aplicar'}</span>
               <FiArrowRight className="text-sm" />
             </button>
           </footer>

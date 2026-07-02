@@ -39,33 +39,33 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col grow">
+      <div className="p-3 sm:p-4 flex flex-col grow">
         <div className="flex justify-between items-baseline mb-2">
-          <h3 className="font-bold text-lg text-nordic font-display">
+          <h3 className="font-bold text-base sm:text-lg text-nordic font-display truncate">
             ${property.price.toLocaleString()}
             {property.type === 'rent' && (
-              <span className="text-sm font-normal text-nordic-muted">/mes</span>
+              <span className="text-xs sm:text-sm font-normal text-nordic-muted">/mes</span>
             )}
           </h3>
         </div>
 
-        <h4 className="text-nordic font-medium truncate mb-1 font-display">
+        <h4 className="text-nordic font-medium truncate mb-1 font-display text-sm sm:text-base">
           {property.title}
         </h4>
-        <p className="text-nordic-muted text-xs mb-4">{property.location}</p>
+        <p className="text-nordic-muted text-xs mb-3 sm:mb-4 truncate">{property.location}</p>
 
         {/* Footer Features */}
-        <div className="mt-auto flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-1 text-nordic-muted text-xs">
-            <FiHome className="text-sm text-mosque/80" />{' '}
+        <div className="mt-auto flex items-center justify-between pt-3 border-t border-gray-100 gap-1">
+          <div className="flex items-center gap-1 text-nordic-muted text-[11px] sm:text-xs">
+            <FiHome className="text-xs sm:text-sm text-mosque/80" />
             {property.beds}
           </div>
-          <div className="flex items-center gap-1 text-nordic-muted text-xs">
-            <FiDroplet className="text-sm text-mosque/80" />{' '}
+          <div className="flex items-center gap-1 text-nordic-muted text-[11px] sm:text-xs">
+            <FiDroplet className="text-xs sm:text-sm text-mosque/80" />
             {property.baths}
           </div>
-          <div className="flex items-center gap-1 text-nordic-muted text-xs">
-            <FiMove className="text-sm text-mosque/80" />{' '}
+          <div className="flex items-center gap-1 text-nordic-muted text-[11px] sm:text-xs">
+            <FiMove className="text-xs sm:text-sm text-mosque/80" />
             {property.sqft}m²
           </div>
         </div>

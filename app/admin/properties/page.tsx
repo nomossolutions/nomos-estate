@@ -67,7 +67,7 @@ export default async function AdminPropertiesPage(props: {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/properties/create"
-            className="bg-mosque hover:bg-mosque/90 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md shadow-mosque/20 transition-all transform hover:-translate-y-0.5 inline-flex items-center gap-2"
+            className="bg-mosque hover:bg-mosque/90 text-white px-5 py-2.5 min-h-[44px] rounded-lg text-sm font-medium shadow-md shadow-mosque/20 transition-all transform hover:-translate-y-0.5 inline-flex items-center gap-2"
           >
             <FiPlus className="text-base" /> Añadir
             Propiedad
@@ -207,7 +207,7 @@ export default async function AdminPropertiesPage(props: {
             <div className="col-span-12 md:col-span-2 flex items-center justify-end gap-2">
               <Link
                 href={`/admin/properties/${property.slug}/edit`}
-                className="p-2 rounded-lg text-nordic/40 hover:text-mosque hover:bg-hint-of-green/50 transition-all"
+                className="min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center p-2 rounded-lg text-nordic/40 hover:text-mosque hover:bg-hint-of-green/50 transition-all"
                 title="Editar Propiedad"
               >
                 <FiEdit className="text-xl" />
@@ -228,7 +228,7 @@ export default async function AdminPropertiesPage(props: {
                       ? 'Desactivar Propiedad'
                       : 'Activar Propiedad'
                   }
-                  className={`p-2 rounded-lg transition-all ${
+                  className={`min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center p-2 rounded-lg transition-all ${
                     property.is_active
                       ? 'text-nordic/40 hover:text-red-600 hover:bg-red-50'
                       : 'text-nordic/40 hover:text-emerald-600 hover:bg-emerald-50'
@@ -249,42 +249,57 @@ export default async function AdminPropertiesPage(props: {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-nordic/10 bg-gray-50/50">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-nordic/10 bg-gray-50/50">
             <div className="text-sm text-nordic/60">
               Mostrando{' '}
-              <span className="font-medium text-nordic">{from + 1}</span> to{' '}
+              <span className="font-medium text-nordic">{from + 1}</span> -{' '}
               <span className="font-medium text-nordic">
                 {Math.min(to + 1, totalListings)}
               </span>{' '}
-              of{' '}
+              de{' '}
               <span className="font-medium text-nordic">{totalListings}</span>{' '}
               resultados
             </div>
             <div className="flex items-center gap-2">
               <Link
                 href={`/admin/properties?page=${Math.max(1, page - 1)}`}
-                className={`p-2 rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === 1 ? 'pointer-events-none opacity-50' : ''}`}
+                className={`min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === 1 ? 'pointer-events-none opacity-50' : ''}`}
               >
-                <FiChevronLeft className="text-xl block" />
+                <FiChevronLeft className="text-xl" />
               </Link>
               <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (p) => (
-                    <Link
-                      key={p}
-                      href={`/admin/properties?page=${p}`}
-                      className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${page === p ? 'bg-mosque text-white' : 'text-nordic/60 hover:text-nordic hover:bg-gray-100'}`}
-                    >
-                      {p}
-                    </Link>
-                  ),
-                )}
+                {(() => {
+                  const getPages = (current: number, total: number) => {
+                    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+                    const p: (number | string)[] = [1];
+                    if (current > 3) p.push('...');
+                    const start = Math.max(2, current - 1);
+                    const end = Math.min(total - 1, current + 1);
+                    for (let i = start; i <= end; i++) p.push(i);
+                    if (current < total - 2) p.push('...');
+                    p.push(total);
+                    return p;
+                  };
+                  return getPages(page, totalPages).map((p, idx) =>
+                    p === '...' ? (
+                      <span key={`e-${idx}`} className="w-6 text-center text-nordic/40 text-sm select-none">...</span>
+                    ) : (
+                      <Link
+                        key={p}
+                        href={`/admin/properties?page=${p}`}
+                        className={`min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${page === p ? 'bg-mosque text-white' : 'text-nordic/60 hover:text-nordic hover:bg-gray-100'}`}
+                      >
+                        {p}
+                      </Link>
+                    ),
+                  );
+                })()}
               </div>
               <Link
                 href={`/admin/properties?page=${Math.min(totalPages, page + 1)}`}
-                className={`p-2 rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === totalPages ? 'pointer-events-none opacity-50' : ''}`}
+                className={`min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center rounded-lg border border-nordic/10 bg-white text-nordic/60 hover:text-nordic hover:bg-gray-50 transition-colors ${page === totalPages ? 'pointer-events-none opacity-50' : ''}`}
               >
-                <FiChevronRight className="text-xl block" />
+                <FiChevronRight className="text-xl" />
               </Link>
             </div>
           </div>
