@@ -10,6 +10,7 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Property, PropertyInsert } from '@/types/property';
 import { createClient } from '@/lib/supabase/client';
+import { createProperty, updateProperty } from '@/app/admin/properties/actions';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import DynamicPropertyMap from '@/components/DynamicPropertyMap';
@@ -188,19 +189,10 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
       // 3. Save to database
       if (isEditMode && initialData?.id) {
-        const { error: updateError } = await supabase
-          .from('properties')
-          .update(propertyData as PropertyInsert)
-          .eq('id', initialData.id);
-
-        if (updateError) throw updateError;
+        await updateProperty(initialData.id, propertyData as PropertyInsert);
         toast.success('Propiedad actualizada correctamente');
       } else {
-        const { error: insertError } = await supabase
-          .from('properties')
-          .insert([propertyData as PropertyInsert]);
-
-        if (insertError) throw insertError;
+        await createProperty(propertyData as PropertyInsert);
         toast.success('Propiedad creada correctamente');
       }
 
