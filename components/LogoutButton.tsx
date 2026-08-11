@@ -16,13 +16,13 @@ export default function LogoutButton({ className }: LogoutButtonProps) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast.success('Sesión cerrada correctamente');
-    router.refresh();
+    router.push('/');
   };
 
   return (
     <button
       onClick={handleLogout}
-      className={className || "text-white/70 hover:text-red-400 transition-colors flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/10 text-sm font-medium"}
+      className={className || "text-white/70 hover:text-burgundy transition-colors flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/10 text-sm font-medium cursor-pointer"}
     >
       <FiLogOut className="text-lg" />
       Cerrar Sesión

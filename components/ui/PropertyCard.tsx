@@ -1,77 +1,58 @@
-import { FiHeart, FiHome, FiDroplet, FiMove } from 'react-icons/fi';
-import Image from 'next/image';
-import { Property } from '@/types/property';
-import Link from 'next/link';
+import { memo } from "react";
+import { FiHeart, FiHome, FiDroplet, FiMove } from "react-icons/fi";
+import Image from "next/image";
+import { Property } from "@/types/property";
+import Link from "next/link";
 
 interface PropertyCardProps {
   property: Property;
 }
 
-const PropertyCard = ({ property }: PropertyCardProps) => {
+const PropertyCard = memo(({ property }: PropertyCardProps) => {
   return (
     <Link
       href={`/properties/${property.slug || property.id}`}
-      className="bg-white rounded-lg overflow-hidden shadow-card hover:shadow-soft transition-all duration-300 group cursor-pointer h-full flex flex-col"
+      className="group flex flex-col bg-surface-container-lowest overflow-hidden border border-outline-variant/30 hover:shadow-elevated hover:-translate-y-1 transition-all duration-500 h-full"
     >
       {/* Image Container */}
-      <div className="relative aspect-4/3 overflow-hidden">
+      <div className="relative h-64 overflow-hidden">
         <Image
-          src={property.images?.[0] ?? '/placeholder.jpg'}
+          src={property.images?.[0] ?? "/placeholder.jpg"}
           alt={property.title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
-        {/* Favorite Button */}
-        <button
-          aria-label="Añadir a favoritos"
-          className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-mosque hover:text-white transition-colors text-nordic z-10 focus-visible:ring-2 focus-visible:ring-mosque focus-visible:outline-none"
-        >
-          <FiHeart className="text-lg" />
-        </button>
-
         {/* Type Tag */}
-        <div
-          className={`absolute bottom-3 left-3 text-white text-xs font-bold px-2 py-1 rounded ${property.type === 'sale' ? 'bg-nordic/90' : 'bg-mosque/90'}`}
-        >
-          {property.type === 'sale' ? 'EN VENTA' : 'EN ALQUILER'}
-        </div>
+        <span className="absolute top-4 left-4 bg-surface/90 backdrop-blur-md px-3 py-1 rounded-sm text-[10px] tracking-[0.2em] uppercase text-primary font-semibold">
+          {property.type === "sale" ? "Venta" : "Alquiler"}
+        </span>
       </div>
 
       {/* Content */}
-      <div className="p-3 sm:p-4 flex flex-col grow">
-        <div className="flex justify-between items-baseline mb-2">
-          <h3 className="font-bold text-base sm:text-lg text-nordic font-display truncate">
-            ${property.price.toLocaleString()}
-            {property.type === 'rent' && (
-              <span className="text-xs sm:text-sm font-normal text-nordic-muted">/mes</span>
-            )}
-          </h3>
-        </div>
-
-        <h4 className="text-nordic font-medium truncate mb-1 font-display text-sm sm:text-base">
+      <div className="p-6 flex flex-col flex-grow">
+        <h3 className="font-display text-xl font-medium mb-2 text-primary">
           {property.title}
-        </h4>
-        <p className="text-nordic-muted text-xs mb-3 sm:mb-4 truncate">{property.location}</p>
+        </h3>
+        <p className="text-secondary text-sm mb-4">{property.location}</p>
 
-        {/* Footer Features */}
-        <div className="mt-auto flex items-center justify-between pt-3 border-t border-gray-100 gap-1">
-          <div className="flex items-center gap-1 text-nordic-muted text-[11px] sm:text-xs">
-            <FiHome className="text-xs sm:text-sm text-mosque/80" />
-            {property.beds}
-          </div>
-          <div className="flex items-center gap-1 text-nordic-muted text-[11px] sm:text-xs">
-            <FiDroplet className="text-xs sm:text-sm text-mosque/80" />
-            {property.baths}
-          </div>
-          <div className="flex items-center gap-1 text-nordic-muted text-[11px] sm:text-xs">
-            <FiMove className="text-xs sm:text-sm text-mosque/80" />
-            {property.sqft}m²
-          </div>
+        <div className="mt-auto flex justify-between items-center border-t border-outline-variant/30 pt-4">
+          <span className="font-display text-lg text-primary tracking-tight">
+            ${property.price.toLocaleString("es-CO")}
+            {property.type === "rent" && (
+              <span className="text-sm font-normal text-secondary">/mes</span>
+            )}
+          </span>
+          <span className="text-[10px] text-tertiary-fixed-dim tracking-widest uppercase">
+            {property.sqft} m²
+          </span>
         </div>
       </div>
     </Link>
   );
-};
+});
+
+PropertyCard.displayName = "PropertyCard";
 
 export default PropertyCard;

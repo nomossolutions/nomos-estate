@@ -4,10 +4,10 @@ import { FiTrendingUp, FiHome, FiCalendar, FiStar } from 'react-icons/fi';
 import { useEffect, useRef, useState } from 'react';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-  trending_up: <FiTrendingUp className="text-xl text-mosque/40 mb-2" />,
-  home: <FiHome className="text-xl text-mosque/40 mb-2" />,
-  calendar_today: <FiCalendar className="text-xl text-mosque/40 mb-2" />,
-  star: <FiStar className="text-xl text-mosque/40 mb-2" />,
+  trending_up: <FiTrendingUp className="text-xl text-gold/40 mb-2" />,
+  home: <FiHome className="text-xl text-gold/40 mb-2" />,
+  calendar_today: <FiCalendar className="text-xl text-gold/40 mb-2" />,
+  star: <FiStar className="text-xl text-gold/40 mb-2" />,
 };
 
 interface Stat {
@@ -66,10 +66,10 @@ function StatCard({ stat, start }: { stat: Stat; start: boolean }) {
   return (
     <div className="flex flex-col items-center text-center p-4 md:p-5">
       {ICON_MAP[stat.icon] || null}
-      <span className="text-2xl md:text-3xl font-display font-semibold text-nordic mb-1 tabular-nums">
+      <span className="text-2xl md:text-3xl font-display font-semibold text-charcoal mb-1 tabular-nums">
         {display}
       </span>
-      <span className="text-[11px] text-nordic-muted/70 uppercase tracking-widest font-medium">
+      <span className="text-[11px] text-charcoal-muted/70 uppercase tracking-widest font-medium">
         {stat.label}
       </span>
     </div>
@@ -108,7 +108,7 @@ export default function StatsSection() {
   return (
     <section
       ref={ref}
-      className="py-10 md:py-12 mb-12"
+      className="py-12 md:py-16 mb-16"
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">

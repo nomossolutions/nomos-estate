@@ -6,7 +6,7 @@ export default function AdminLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="bg-clear-day text-nordic font-display min-h-screen flex flex-col antialiased">
+    <div className="bg-clear-day text-charcoal font-display min-h-screen flex flex-col antialiased">
       {/* Main content */}
       <div className="grow flex flex-col w-full">{children}</div>
 

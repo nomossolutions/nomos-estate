@@ -7,6 +7,7 @@ interface PaginationProps {
   baseUrl?: string;
   prevLabel?: string;
   nextLabel?: string;
+  searchString?: string;
 }
 
 function getPageNumbers(current: number, total: number): (number | 'ellipsis')[] {
@@ -29,13 +30,14 @@ export default function Pagination({
   baseUrl = '/',
   prevLabel = 'Anterior',
   nextLabel = 'Siguiente',
+  searchString = '',
 }: PaginationProps) {
   if (totalPages <= 1) return null;
 
   const buildHref = (page: number) => {
-    const url = new URL(baseUrl, 'http://placeholder');
-    url.searchParams.set('page', String(page));
-    return `${url.pathname}?${url.searchParams.toString()}`;
+    const params = new URLSearchParams(searchString);
+    params.set('page', String(page));
+    return `${baseUrl}?${params.toString()}`;
   };
 
   const pages = getPageNumbers(currentPage, totalPages);
@@ -50,13 +52,13 @@ export default function Pagination({
       {currentPage > 1 ? (
         <Link
           href={buildHref(currentPage - 1)}
-          className={`${btnClass} gap-1 px-3 md:px-4 py-2 text-nordic bg-white border border-nordic/10 rounded-lg hover:border-mosque hover:text-mosque hover:shadow-sm`}
+          className={`${btnClass} gap-1 px-3 md:px-4 py-2 text-charcoal bg-white border border-charcoal/10 rounded-lg hover:border-gold hover:text-gold hover:shadow-sm`}
         >
           <FiChevronLeft className="text-base" />
           <span className="hidden sm:inline">{prevLabel}</span>
         </Link>
       ) : (
-        <span className={`${btnClass} gap-1 px-3 md:px-4 py-2 text-nordic-muted bg-white border border-nordic/10 rounded-lg opacity-40 cursor-not-allowed`}>
+        <span className={`${btnClass} gap-1 px-3 md:px-4 py-2 text-text-muted bg-white border border-charcoal/10 rounded-lg opacity-40 cursor-not-allowed`} aria-disabled="true">
           <FiChevronLeft className="text-base" />
           <span className="hidden sm:inline">{prevLabel}</span>
         </span>
@@ -66,7 +68,7 @@ export default function Pagination({
       <div className="flex items-center gap-1">
         {pages.map((page, idx) =>
           page === 'ellipsis' ? (
-            <span key={`ellipsis-${idx}`} className="w-6 md:w-9 text-center text-nordic-muted text-sm select-none">
+            <span key={`ellipsis-${idx}`} className="w-6 md:w-9 text-center text-text-muted text-sm select-none">
               ...
             </span>
           ) : (
@@ -75,8 +77,8 @@ export default function Pagination({
               href={buildHref(page)}
               className={`${btnClass} ${
                 page === currentPage
-                  ? 'bg-nordic text-white shadow-sm'
-                  : 'bg-white text-nordic border border-nordic/10 hover:border-mosque hover:text-mosque hover:shadow-sm'
+                  ? 'bg-charcoal text-white shadow-sm'
+                  : 'bg-white text-charcoal border border-charcoal/10 hover:border-gold hover:text-gold hover:shadow-sm'
               }`}
             >
               {page}
@@ -89,13 +91,13 @@ export default function Pagination({
       {currentPage < totalPages ? (
         <Link
           href={buildHref(currentPage + 1)}
-          className={`${btnClass} gap-1 px-3 md:px-4 py-2 text-nordic bg-white border border-nordic/10 rounded-lg hover:border-mosque hover:text-mosque hover:shadow-sm`}
+          className={`${btnClass} gap-1 px-3 md:px-4 py-2 text-charcoal bg-white border border-charcoal/10 rounded-lg hover:border-gold hover:text-gold hover:shadow-sm`}
         >
           <span className="hidden sm:inline">{nextLabel}</span>
           <FiChevronRight className="text-base" />
         </Link>
       ) : (
-        <span className={`${btnClass} gap-1 px-3 md:px-4 py-2 text-nordic-muted bg-white border border-nordic/10 rounded-lg opacity-40 cursor-not-allowed`}>
+        <span className={`${btnClass} gap-1 px-3 md:px-4 py-2 text-text-muted bg-white border border-charcoal/10 rounded-lg opacity-40 cursor-not-allowed`} aria-disabled="true">
           <span className="hidden sm:inline">{nextLabel}</span>
           <FiChevronRight className="text-base" />
         </span>

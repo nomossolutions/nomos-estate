@@ -13,7 +13,7 @@ function SubmitButton({ isAdmin }: { isAdmin: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex items-center px-4 py-2 border border-nordic/10 bg-white shadow-sm text-xs font-medium rounded-lg text-nordic hover:bg-nordic hover:text-white focus:outline-none transition-colors w-full md:w-auto justify-center disabled:opacity-50"
+      className="inline-flex items-center px-4 py-2 border border-charcoal/10 bg-white shadow-sm text-xs font-medium rounded-lg text-charcoal hover:bg-charcoal hover:text-white focus:outline-none transition-colors w-full md:w-auto justify-center disabled:opacity-50 cursor-pointer"
     >
       {isAdmin ? 'Quitar Admin' : 'Hacer Admin'}
       <FiRefreshCw className={`text-base ml-2 ${pending ? 'animate-spin' : ''}`} />

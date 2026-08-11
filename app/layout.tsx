@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Sora } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Toaster from '@/components/Toaster';
@@ -11,9 +11,9 @@ const inter = Inter({
   display: 'swap',
 });
 
-const sora = Sora({
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-sora',
+  variable: '--font-playfair',
   display: 'swap',
 });
 
@@ -30,10 +30,18 @@ export default function RootLayout({
   return (
       <html lang="es">
       <body
-        className={`${inter.variable} ${sora.variable} font-body antialiased bg-clear-day text-nordic`}
+        className={`${inter.variable} ${playfair.variable} font-body antialiased bg-clear-day text-charcoal`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-charcoal focus:text-white focus:px-4 focus:py-2 focus:rounded"
+        >
+          Saltar al contenido principal
+        </a>
         <Navbar />
-        {children}
+        <div id="main-content">
+          {children}
+        </div>
         <Footer />
         <Toaster />
       </body>

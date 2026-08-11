@@ -29,19 +29,20 @@ const FeaturedCollection = async () => {
   }));
 
   return (
-    <section className="mb-16">
-      <div className="flex items-end justify-between mb-8">
+    <section className="py-16">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
         <div>
-          <h2 className="text-2xl font-light text-nordic font-display">
+          <h2 className="text-3xl font-light text-charcoal font-display">
             {content.common.featured_properties}
           </h2>
-          <p className="text-nordic-muted mt-1 text-sm">
+          <div className="w-12 h-0.5 bg-gold/50 mt-3"></div>
+          <p className="text-text-muted mt-3 text-sm">
             Propiedades seleccionadas para los más exigentes.
           </p>
         </div>
         <Link
-          href="#"
-          className="hidden sm:flex items-center gap-1 text-sm font-medium text-mosque hover:opacity-70 transition-opacity"
+          href="/#properties"
+          className="hidden sm:flex items-center gap-1 text-sm font-medium text-gold hover:opacity-70 transition-opacity shrink-0"
         >
           Ver todas{' '}
           <FiArrowRight className="text-sm" />
