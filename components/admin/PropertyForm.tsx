@@ -25,9 +25,17 @@ import DynamicPropertyMap from "@/components/DynamicPropertyMap";
 
 interface PropertyFormProps {
   initialData?: Property;
+  /**
+   * Categorías definidas por el admin (/admin/categorias). Si la migración no
+   * corrió, llega vacío y el campo no se muestra.
+   */
+  categorias?: { id: string; name: string }[];
 }
 
-export default function PropertyForm({ initialData }: PropertyFormProps) {
+export default function PropertyForm({
+  initialData,
+  categorias = [],
+}: PropertyFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const isEditMode = !!initialData;
@@ -39,6 +47,9 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     title: initialData?.title || "",
     price: initialData?.price || 0,
     type: initialData?.type || "sale",
+    /* El nombre del campo es `category_id` para que caiga en la columna real:
+       este objeto se escribe tal cual contra `properties`. */
+    category_id: initialData?.category_id ?? null,
     location: initialData?.location || "",
     lat: initialData?.lat ?? undefined,
     lng: initialData?.lng ?? undefined,
@@ -55,6 +66,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
   });
 
   const [newImages, setNewImages] = useState<File[]>([]);
+  const [nuevaComodidad, setNuevaComodidad] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>(
     initialData?.images || [],
   );
@@ -84,21 +96,38 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     setFormData((prev) => ({ ...prev, [id]: parsedValue }));
   };
 
-  const handleAmenityToggle = (amenity: string) => {
+  /*
+   * Comodidades dinámicas.
+   *
+   * Antes era una lista fija de ocho checkboxes (`AMENITIES_LIST`), así que solo
+   * se podían cargar esas ocho y ninguna propiedad podía tener otra cosa —
+   * "Vista al mar" o "Amoblado" no existían como posibilidad. Ahora el admin
+   * escribe la comodidad y se agrega; las sugeridas quedan como atajo, no como
+   * límite.
+   */
+  const agregarComodidad = (valor: string) => {
+    const limpio = valor.trim();
+    if (!limpio) return;
     setFormData((prev) => {
-      const currentAmenities = prev.amenities || [];
-      if (currentAmenities.includes(amenity)) {
-        return {
-          ...prev,
-          amenities: currentAmenities.filter((a) => a !== amenity),
-        };
-      } else {
-        return {
-          ...prev,
-          amenities: [...currentAmenities, amenity],
-        };
-      }
+      const actuales = prev.amenities || [];
+      /* Comparación sin distinguir mayúsculas ni acentos: "jardin" y "Jardín"
+         son la misma comodidad, y duplicarlas ensuciaría la ficha. */
+      const norm = (s: string) =>
+        s
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
+      if (actuales.some((a) => norm(a) === norm(limpio))) return prev;
+      return { ...prev, amenities: [...actuales, limpio] };
     });
+    setNuevaComodidad('');
+  };
+
+  const quitarComodidad = (amenity: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      amenities: (prev.amenities || []).filter((a) => a !== amenity),
+    }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,7 +246,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
         toast.success("Propiedad creada correctamente");
       }
 
-      router.push("/admin/properties");
+      router.push("/admin/propiedades");
       router.refresh(); // Refresh the data
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -230,7 +259,12 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     }
   };
 
-  const AMENITIES_LIST = [
+  /*
+   * Sugerencias, no una lista cerrada. Antes esto era `AMENITIES_LIST` y era lo
+   * único que se podía cargar; ahora es un atajo para lo habitual. Lo que no esté
+   * acá se escribe a mano.
+   */
+  const SUGERENCIAS = [
     "Piscina",
     "Jardín",
     "Aire Acondicionado",
@@ -239,6 +273,12 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     "Gimnasio",
     "Sistema de Seguridad",
     "Ascensor",
+    "Parrilla",
+    "Cochera",
+    "Amoblado",
+    "Vista al mar",
+    "Losa radiante",
+    "Cuarto de servicio",
   ];
 
   return (
@@ -248,39 +288,39 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     >
       <div className="xl:col-span-8 space-y-8">
         {error && (
-          <div role="alert" className="bg-burgundy/10 text-burgundy p-4 rounded-xl border border-burgundy/20 mb-6">
+          <div role="alert" className="bg-laca-tenue text-laca p-4 rounded border border-laca/40 mb-6">
             {error}
           </div>
         )}
 
-        <div className="bg-white border-charcoal/10 hover:shadow-elevated transition-all duration-400 overflow-hidden">
-          <div className="px-8 py-6 border-b border-surface-container-low/30 flex items-center justify-between gap-3 bg-linear-to-r from-surface-container-low/10 to-transparent">
+        <div className="bg-hoja-alta border-rule transition-colors overflow-hidden">
+          <div className="px-8 py-6 border-b border-rule flex items-center justify-between gap-3 ">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-charcoal">
+              <div className="flex h-9 w-9 items-center justify-center border border-rule text-tinta-tenue">
                 <FiInfo className="text-lg" />
               </div>
-              <h2 className="text-xl font-bold text-charcoal">
+              <h2 className="font-display text-folio font-normal text-tinta">
                 Información Básica
               </h2>
             </div>
             <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-md border border-outline-variant/50 shadow-sm">
+              <label className="flex items-center gap-2 cursor-pointer bg-hoja-alta px-3 py-1.5 rounded border border-rule-fuerte">
                 <input
                   id="is_featured"
                   type="checkbox"
                   checked={formData.is_featured}
                   onChange={handleInputChange}
-                  className="w-4 h-4 text-gold border-outline-variant rounded focus:ring-gold"
+                  className="w-4 h-4 text-laton border-rule-fuerte rounded focus:border-tinta"
                 />
-                <span className="text-sm font-medium text-charcoal transition-colors">
+                <span className="text-sm font-medium text-tinta transition-colors">
                   Destacada
                 </span>
               </label>
               <label
-                className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-md border shadow-sm transition-colors ${
+                className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded border transition-colors ${
                   formData.is_active
-                    ? "bg-sage/10 border-sage/30 text-sage"
-                    : "bg-burgundy/10 border-burgundy/30 text-burgundy"
+                    ? "bg-sage/15 border-sage/40 text-sage"
+                    : "bg-laca-tenue border-laca/40 text-laca"
                 }`}
               >
                 <input
@@ -288,7 +328,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   type="checkbox"
                   checked={formData.is_active}
                   onChange={handleInputChange}
-                  className="w-4 h-4 border-outline-variant rounded"
+                  className="w-4 h-4 border-rule-fuerte rounded"
                 />
                 <span className="text-sm font-medium">
                   {formData.is_active ? "Activa" : "Inactiva"}
@@ -299,10 +339,10 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           <div className="p-8 space-y-6">
             <div className="group">
               <label
-                className="block text-sm font-medium text-charcoal mb-1.5 font-body"
+                className="block text-sm font-medium text-tinta mb-1.5"
                 htmlFor="title"
               >
-                Título de la Propiedad <span className="text-burgundy">*</span>
+                Título de la Propiedad <span className="text-laca">*</span>
               </label>
               <input
                 id="title"
@@ -310,20 +350,20 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 required
                 value={formData.title}
                 onChange={handleInputChange}
-                className="w-full text-base px-4 py-2.5 rounded-md border-outline-variant/50 bg-white text-charcoal placeholder:text-text-muted focus:ring-1 focus:ring-gold focus:border-gold transition-all font-body"
+                className="w-full text-base px-4 py-2.5 rounded border-rule-fuerte bg-hoja-alta text-tinta placeholder:text-text-muted focus:border-tinta transition-all"
                 placeholder="ej. Penthouse Moderno con Vista al Mar"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label
-                  className="block text-sm font-medium text-charcoal mb-1.5 font-body"
+                  className="block text-sm font-medium text-tinta mb-1.5"
                   htmlFor="price"
                 >
-                  Precio <span className="text-burgundy">*</span>
+                  Precio <span className="text-laca">*</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted font-body text-sm">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm">
                     $
                   </span>
                   <input
@@ -333,7 +373,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                     min="0"
                     value={formData.price}
                     onChange={handleInputChange}
-                    className="w-full pl-7 pr-4 py-2.5 rounded-md border-outline-variant/50 bg-white text-charcoal placeholder:text-text-muted focus:ring-1 focus:ring-gold focus:border-gold transition-all text-base font-medium font-body"
+                    className="w-full pl-7 pr-4 py-2.5 rounded border-rule-fuerte bg-hoja-alta text-tinta placeholder:text-text-muted focus:border-tinta transition-all text-base font-medium"
                     placeholder="0.00"
                   />
                 </div>
@@ -341,60 +381,92 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
               <div>
                 <label
-                  className="block text-sm font-medium text-charcoal mb-1.5 font-body"
+                  className="block text-sm font-medium text-tinta mb-1.5"
                   htmlFor="type"
                 >
-                  Tipo de Propiedad
+                  Operación
                 </label>
                 <select
                   id="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 rounded-md border-outline-variant/50 bg-white text-charcoal focus:ring-1 focus:ring-gold focus:border-gold transition-all text-base font-body cursor-pointer"
+                  className="w-full px-4 py-2.5 rounded border-rule-fuerte bg-hoja-alta text-tinta focus:border-tinta transition-all text-base cursor-pointer"
                 >
                   <option value="sale">En Venta</option>
                   <option value="rent">En Alquiler</option>
                 </select>
+                <p className="mt-1.5 text-menudo text-tinta-tenue">
+                  Venta o alquiler. Es independiente de la categoría.
+                </p>
               </div>
             </div>
+
+            {/* Categoría: la define el admin en /admin/categorias. Lo que elija
+                acá es lo que hace que la propiedad aparezca en ese filtro. */}
+            {categorias.length > 0 && (
+              <div>
+                <label
+                  className="block text-sm font-medium text-tinta mb-1.5"
+                  htmlFor="category_id"
+                >
+                  Categoría
+                </label>
+                <select
+                  id="category_id"
+                  value={formData.category_id ?? ""}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2.5 rounded border-rule-fuerte bg-hoja-alta text-tinta focus:border-tinta transition-all text-base cursor-pointer"
+                >
+                  <option value="">Sin categoría</option>
+                  {categorias.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1.5 text-menudo text-tinta-tenue">
+                  Sin categoría, la propiedad no aparece al filtrar por categoría.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="bg-white border-charcoal/10 hover:shadow-elevated transition-all duration-400 overflow-hidden">
-          <div className="px-8 py-6 border-b border-surface-container-low/30 flex items-center gap-3 bg-linear-to-r from-surface-container-low/10 to-transparent">
-            <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-charcoal">
+        <div className="bg-hoja-alta border-rule transition-colors overflow-hidden">
+          <div className="px-8 py-6 border-b border-rule flex items-center gap-3 ">
+            <div className="flex h-9 w-9 items-center justify-center border border-rule text-tinta-tenue">
               <FiFileText className="text-lg" />
             </div>
-            <h2 className="text-xl font-bold text-charcoal">Descripción</h2>
+            <h2 className="font-display text-folio font-normal text-tinta">Descripción</h2>
           </div>
           <div className="p-8">
             <textarea
               id="description"
               value={formData.description}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 rounded-md border-outline-variant/50 bg-white text-charcoal placeholder:text-text-muted focus:ring-1 focus:ring-gold focus:border-gold transition-all text-base font-body leading-relaxed resize-y min-h-[200px]"
+              className="w-full px-4 py-3 rounded border-rule-fuerte bg-hoja-alta text-tinta placeholder:text-text-muted focus:border-tinta transition-all text-base leading-relaxed resize-y min-h-[200px]"
               placeholder="Describe las características, el vecindario y puntos destacados..."
             />
-            <div className="mt-2 text-right text-xs text-text-muted font-body">
+            <div className="mt-2 text-right text-xs text-text-muted">
               {(formData.description || "").length} / 2000 caracteres
             </div>
           </div>
         </div>
 
-        <div className="bg-white border-charcoal/10 hover:shadow-elevated transition-all duration-400 overflow-hidden">
-          <div className="px-8 py-6 border-b border-surface-container-low/30 flex justify-between items-center bg-linear-to-r from-surface-container-low/10 to-transparent">
+        <div className="bg-hoja-alta border-rule transition-colors overflow-hidden">
+          <div className="px-8 py-6 border-b border-rule flex justify-between items-center ">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-charcoal">
+              <div className="flex h-9 w-9 items-center justify-center border border-rule text-tinta-tenue">
                 <FiImage className="text-lg" />
               </div>
-              <h2 className="text-xl font-bold text-charcoal">Galería</h2>
+              <h2 className="font-display text-folio font-normal text-tinta">Galería</h2>
             </div>
-            <span className="text-xs font-medium text-text-muted bg-surface-container px-2 py-1 rounded font-body">
+            <span className="text-xs font-medium text-text-muted bg-hoja-baja px-2 py-1 rounded">
               JPG, PNG, WEBP
             </span>
           </div>
           <div className="p-8">
-            <div className="relative border-2 border-dashed border-outline-variant rounded-xl bg-surface-container-low/50 p-10 text-center hover:bg-surface-container-low/30 hover:border-gold/40 transition-colors cursor-pointer group">
+            <div className="relative border-2 border-dashed border-rule-fuerte rounded bg-hoja-baja p-10 text-center hover:bg-hoja-baja hover:border-laton transition-colors cursor-pointer group">
               <label htmlFor="image-upload" className="sr-only">Subir imágenes de la propiedad</label>
               <input
                 id="image-upload"
@@ -405,14 +477,14 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
               <div className="flex flex-col items-center justify-center space-y-3">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-gold group-hover:scale-110 transition-transform duration-300">
+                <div className="w-12 h-12 bg-hoja-alta rounded flex items-center justify-center text-laton group-hover:scale-110 transition-transform duration-300">
                   <FiUploadCloud className="text-2xl" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-base font-medium text-charcoal font-body">
+                  <p className="text-base font-medium text-tinta">
                     Haz clic o arrastra imágenes aquí
                   </p>
-                  <p className="text-xs text-text-muted font-body">
+                  <p className="text-xs text-text-muted">
                     Tamaño máximo 5MB por imagen
                   </p>
                 </div>
@@ -424,7 +496,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 {imagePreviewUrls.map((url, index) => (
                   <div
                     key={index}
-                    className="aspect-square rounded-lg overflow-hidden relative group shadow-sm"
+                    className="aspect-square rounded overflow-hidden relative group"
                   >
                     <Image
                       src={url}
@@ -437,13 +509,13 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                         type="button"
                         onClick={() => removeImage(index)}
                         aria-label={`Eliminar imagen ${index + 1}`}
-                        className="w-11 h-11 rounded-full bg-white text-burgundy hover:bg-burgundy/10 flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+                        className="w-11 h-11 rounded bg-hoja-alta text-laca hover:bg-laca/10 flex items-center justify-center transition-colors cursor-pointer"
                       >
                         <FiTrash2 className="text-sm" />
                       </button>
                     </div>
                     {index === 0 && (
-                      <span className="absolute top-2 left-2 bg-gold text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm font-body uppercase tracking-wider">
+                      <span className="sello absolute left-2 top-2 border-hoja bg-tinta text-hoja">
                         Principal
                       </span>
                     )}
@@ -456,20 +528,20 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
       </div>
 
       <div className="xl:col-span-4 space-y-8">
-        <div className="bg-white border-charcoal/10 hover:shadow-elevated transition-all duration-400 overflow-hidden">
-          <div className="px-6 py-4 border-b border-surface-container-low/30 flex items-center gap-3 bg-linear-to-r from-surface-container-low/10 to-transparent">
-            <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-charcoal">
+        <div className="bg-hoja-alta border-rule transition-colors overflow-hidden">
+          <div className="px-6 py-4 border-b border-rule flex items-center gap-3 ">
+            <div className="flex h-9 w-9 items-center justify-center border border-rule text-tinta-tenue">
               <FiMapPin className="text-lg" />
             </div>
-            <h2 className="text-lg font-bold text-charcoal">Ubicación</h2>
+            <h2 className="font-display text-folio font-normal text-tinta">Ubicación</h2>
           </div>
           <div className="p-6 space-y-4">
             <div>
               <label
-                className="block text-sm font-medium text-charcoal mb-1.5 font-body"
+                className="block text-sm font-medium text-tinta mb-1.5"
                 htmlFor="location"
               >
-                Dirección <span className="text-burgundy">*</span>
+                Dirección <span className="text-laca">*</span>
               </label>
               <input
                 id="location"
@@ -477,14 +549,14 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 required
                 value={formData.location}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 rounded-md border-outline-variant/50 bg-white text-charcoal placeholder:text-text-muted focus:ring-1 focus:ring-gold focus:border-gold transition-all text-sm font-body"
+                className="w-full px-4 py-2.5 rounded border-rule-fuerte bg-hoja-alta text-tinta placeholder:text-text-muted focus:border-tinta transition-all text-sm"
                 placeholder="Calle, Ciudad, Código Postal"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label
-                  className="block text-sm font-medium text-charcoal mb-1.5 font-body"
+                  className="block text-sm font-medium text-tinta mb-1.5"
                   htmlFor="lat"
                 >
                   Latitud
@@ -495,13 +567,13 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   step="any"
                   value={formData.lat ?? ""}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 rounded-md border-outline-variant/50 bg-white text-charcoal placeholder:text-text-muted focus:ring-1 focus:ring-gold focus:border-gold transition-all text-sm font-body"
+                  className="w-full px-4 py-2.5 rounded border-rule-fuerte bg-hoja-alta text-tinta placeholder:text-text-muted focus:border-tinta transition-all text-sm"
                   placeholder="ej. 40.7128"
                 />
               </div>
               <div>
                 <label
-                  className="block text-sm font-medium text-charcoal mb-1.5 font-body"
+                  className="block text-sm font-medium text-tinta mb-1.5"
                   htmlFor="lng"
                 >
                   Longitud
@@ -512,7 +584,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   step="any"
                   value={formData.lng ?? ""}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 rounded-md border-outline-variant/50 bg-white text-charcoal placeholder:text-text-muted focus:ring-1 focus:ring-gold focus:border-gold transition-all text-sm font-body"
+                  className="w-full px-4 py-2.5 rounded border-rule-fuerte bg-hoja-alta text-tinta placeholder:text-text-muted focus:border-tinta transition-all text-sm"
                   placeholder="ej. -74.0060"
                 />
               </div>
@@ -527,7 +599,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 />
               </div>
             ) : (
-              <div className="relative h-48 w-full rounded-lg overflow-hidden bg-surface-dim border border-outline-variant group">
+              <div className="relative h-48 w-full rounded overflow-hidden bg-hoja-baja border border-rule-fuerte group">
                 <Image
                   src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=600"
                   alt="Vista del mapa"
@@ -536,8 +608,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span className="bg-white/90 text-charcoal px-3 py-1.5 rounded shadow-sm backdrop-blur-sm text-xs font-bold font-body flex items-center gap-1">
-                    <FiMap className="text-sm text-gold" /> Ubicación en el Mapa
+                  <span className="bg-hoja text-tinta px-3 py-1.5 rounded backdrop-blur-sm text-xs font-bold flex items-center gap-1">
+                    <FiMap className="text-sm text-laton" /> Ubicación en el Mapa
                   </span>
                 </div>
               </div>
@@ -545,18 +617,18 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           </div>
         </div>
 
-        <div className="bg-white border-charcoal/10 hover:shadow-elevated transition-all duration-400 overflow-hidden lg:sticky lg:top-24">
-          <div className="px-6 py-4 border-b border-surface-container-low/30 flex items-center gap-3 bg-linear-to-r from-surface-container-low/10 to-transparent">
-            <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-charcoal">
+        <div className="bg-hoja-alta border-rule transition-colors overflow-hidden lg:sticky lg:top-24">
+          <div className="px-6 py-4 border-b border-rule flex items-center gap-3 ">
+            <div className="flex h-9 w-9 items-center justify-center border border-rule text-tinta-tenue">
               <FiMinimize2 className="text-lg" />
             </div>
-            <h2 className="text-lg font-bold text-charcoal">Detalles</h2>
+            <h2 className="font-display text-folio font-normal text-tinta">Detalles</h2>
           </div>
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="group">
                 <label
-                  className="text-xs text-text-muted font-medium font-body mb-1 block"
+                  className="text-xs text-text-muted font-medium mb-1 block"
                   htmlFor="sqft"
                 >
                   Área (m²)
@@ -567,13 +639,13 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   min="0"
                   value={formData.sqft}
                   onChange={handleInputChange}
-                  className="w-full text-left px-3 py-2 rounded border-outline-variant/50 bg-surface-container-low text-charcoal focus:bg-white focus:ring-1 focus:ring-gold focus:border-gold transition-all font-body text-sm"
+                  className="w-full text-left px-3 py-2 rounded border-rule-fuerte bg-hoja-baja text-tinta focus:bg-hoja-alta focus:border-tinta transition-all text-sm"
                   placeholder="0"
                 />
               </div>
               <div className="group">
                 <label
-                  className="text-xs text-text-muted font-medium font-body mb-1 block"
+                  className="text-xs text-text-muted font-medium mb-1 block"
                   htmlFor="year_built"
                 >
                   Año de Construcción
@@ -583,25 +655,25 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   type="number"
                   value={formData.year_built}
                   onChange={handleInputChange}
-                  className="w-full text-left px-3 py-2 rounded border-outline-variant/50 bg-surface-container-low text-charcoal focus:bg-white focus:ring-1 focus:ring-gold focus:border-gold transition-all font-body text-sm"
+                  className="w-full text-left px-3 py-2 rounded border-rule-fuerte bg-hoja-baja text-tinta focus:bg-hoja-alta focus:border-tinta transition-all text-sm"
                   placeholder="YYYY"
                 />
               </div>
             </div>
 
-            <hr className="border-outline-variant/30" />
+            <hr className="border-rule" />
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-charcoal font-body flex items-center gap-2">
+                <label className="text-sm font-medium text-tinta flex items-center gap-2">
                   <FiHome className="text-text-muted text-sm" /> Dormitorios
                 </label>
-                <div className="flex items-center border border-outline-variant rounded-md overflow-hidden bg-white shadow-sm">
+                <div className="flex items-center border border-rule-fuerte rounded overflow-hidden bg-hoja-alta">
                   <button
                     type="button"
                     onClick={() => decrementValue("beds")}
                     aria-label="Reducir dormitorios"
-                    className="w-11 h-11 flex items-center justify-center hover:bg-surface-container-low text-text-secondary transition-colors border-r border-outline-variant cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center hover:bg-hoja-baja text-text-secondary transition-colors border-r border-rule-fuerte cursor-pointer"
                   >
                     -
                   </button>
@@ -609,14 +681,14 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                     type="text"
                     readOnly
                     value={formData.beds}
-                    className="w-10 text-center border-none bg-transparent text-charcoal p-0 focus:ring-0 text-sm font-medium font-body"
+                    className="w-10 text-center border-none bg-transparent text-tinta p-0 focus:ring-0 text-sm font-medium"
                     aria-label="Número de dormitorios"
                   />
                   <button
                     type="button"
                     onClick={() => incrementValue("beds")}
                     aria-label="Aumentar dormitorios"
-                    className="w-11 h-11 flex items-center justify-center hover:bg-surface-container-low text-text-secondary transition-colors border-l border-outline-variant cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center hover:bg-hoja-baja text-text-secondary transition-colors border-l border-rule-fuerte cursor-pointer"
                   >
                     +
                   </button>
@@ -624,15 +696,15 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-charcoal font-body flex items-center gap-2">
+                <label className="text-sm font-medium text-tinta flex items-center gap-2">
                   <FiDroplet className="text-text-muted text-sm" /> Baños
                 </label>
-                <div className="flex items-center border border-outline-variant rounded-md overflow-hidden bg-white shadow-sm">
+                <div className="flex items-center border border-rule-fuerte rounded overflow-hidden bg-hoja-alta">
                   <button
                     type="button"
                     onClick={() => decrementValue("baths")}
                     aria-label="Reducir baños"
-                    className="w-11 h-11 flex items-center justify-center hover:bg-surface-container-low text-text-secondary transition-colors border-r border-outline-variant cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center hover:bg-hoja-baja text-text-secondary transition-colors border-r border-rule-fuerte cursor-pointer"
                   >
                     -
                   </button>
@@ -640,14 +712,14 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                     type="text"
                     readOnly
                     value={formData.baths}
-                    className="w-10 text-center border-none bg-transparent text-charcoal p-0 focus:ring-0 text-sm font-medium font-body"
+                    className="w-10 text-center border-none bg-transparent text-tinta p-0 focus:ring-0 text-sm font-medium"
                     aria-label="Número de baños"
                   />
                   <button
                     type="button"
                     onClick={() => incrementValue("baths")}
                     aria-label="Aumentar baños"
-                    className="w-11 h-11 flex items-center justify-center hover:bg-surface-container-low text-text-secondary transition-colors border-l border-outline-variant cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center hover:bg-hoja-baja text-text-secondary transition-colors border-l border-rule-fuerte cursor-pointer"
                   >
                     +
                   </button>
@@ -655,16 +727,16 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-charcoal font-body flex items-center gap-2">
+                <label className="text-sm font-medium text-tinta flex items-center gap-2">
                   <FiNavigation className="text-text-muted text-sm" />{" "}
                   Estacionamiento
                 </label>
-                <div className="flex items-center border border-outline-variant rounded-md overflow-hidden bg-white shadow-sm">
+                <div className="flex items-center border border-rule-fuerte rounded overflow-hidden bg-hoja-alta">
                   <button
                     type="button"
                     onClick={() => decrementValue("parking")}
                     aria-label="Reducir estacionamiento"
-                    className="w-11 h-11 flex items-center justify-center hover:bg-surface-container-low text-text-secondary transition-colors border-r border-outline-variant cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center hover:bg-hoja-baja text-text-secondary transition-colors border-r border-rule-fuerte cursor-pointer"
                   >
                     -
                   </button>
@@ -672,14 +744,14 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                     type="text"
                     readOnly
                     value={formData.parking}
-                    className="w-10 text-center border-none bg-transparent text-charcoal p-0 focus:ring-0 text-sm font-medium font-body"
+                    className="w-10 text-center border-none bg-transparent text-tinta p-0 focus:ring-0 text-sm font-medium"
                     aria-label="Número de estacionamientos"
                   />
                   <button
                     type="button"
                     onClick={() => incrementValue("parking")}
                     aria-label="Aumentar estacionamiento"
-                    className="w-11 h-11 flex items-center justify-center hover:bg-surface-container-low text-text-secondary transition-colors border-l border-outline-variant cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center hover:bg-hoja-baja text-text-secondary transition-colors border-l border-rule-fuerte cursor-pointer"
                   >
                     +
                   </button>
@@ -687,71 +759,122 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
               </div>
             </div>
 
-            <hr className="border-outline-variant/30" />
+            <hr className="border-rule" />
 
             <div>
-              <h3 className="text-sm font-bold text-charcoal mb-3 font-body uppercase tracking-wider">
-                Comodidades
-              </h3>
-              <div className="space-y-2">
-                {AMENITIES_LIST.map((amenity) => (
-                  <label
-                    key={amenity}
-                    className="flex items-center gap-2.5 cursor-pointer group"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={(formData.amenities || []).includes(amenity)}
-                      onChange={() => handleAmenityToggle(amenity)}
-                      className="w-4 h-4 text-gold border-outline-variant rounded focus:ring-gold"
-                    />
-                    <span className="text-sm text-charcoal font-body group-hover:text-charcoal transition-colors">
-                      {amenity}
-                    </span>
-                  </label>
-                ))}
+              <h3 className="text-sm font-bold text-tinta mb-1">Comodidades</h3>
+              <p className="mb-4 text-menudo text-tinta-tenue">
+                Escribilas y se agregan a la propiedad. Son tuyas: no hay una
+                lista cerrada.
+              </p>
+
+              {/* Cargadas: se quitan con un clic */}
+              {(formData.amenities || []).length > 0 && (
+                <ul className="mb-4 flex flex-wrap gap-2">
+                  {(formData.amenities || []).map((amenity) => (
+                    <li key={amenity}>
+                      <button
+                        type="button"
+                        onClick={() => quitarComodidad(amenity)}
+                        aria-label={`Quitar ${amenity}`}
+                        className="group inline-flex items-center gap-2 border border-rule-fuerte bg-hoja-alta px-3 py-1.5 text-menudo text-tinta transition-colors hover:border-laca/40 hover:text-laca"
+                      >
+                        {amenity}
+                        <span aria-hidden="true" className="text-tinta-tenue group-hover:text-laca">
+                          ×
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Alta: Enter agrega, así se pueden cargar varias seguidas */}
+              <div className="flex gap-3">
+                <input
+                  id="nueva-comodidad"
+                  type="text"
+                  value={nuevaComodidad}
+                  onChange={(e) => setNuevaComodidad(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      agregarComodidad(nuevaComodidad);
+                    }
+                  }}
+                  maxLength={40}
+                  placeholder="Ej.: Vista al mar, Amoblado, Parrilla…"
+                  className="w-full border border-rule-fuerte bg-hoja-alta px-4 py-2.5 text-menudo text-tinta placeholder:text-tinta-tenue/70 transition-colors focus:border-tinta focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => agregarComodidad(nuevaComodidad)}
+                  disabled={!nuevaComodidad.trim()}
+                  className="inline-flex h-11 shrink-0 items-center border border-rule-fuerte px-4 text-menudo font-medium text-tinta transition-colors hover:border-tinta disabled:opacity-40"
+                >
+                  Agregar
+                </button>
+              </div>
+
+              {/* Sugerencias: atajo, no límite */}
+              <div className="mt-5">
+                <p className="indicador mb-2">Sugerencias</p>
+                <div className="flex flex-wrap gap-2">
+                  {SUGERENCIAS
+                    .filter((s) => !(formData.amenities || []).includes(s))
+                    .map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => agregarComodidad(s)}
+                        className="border border-dashed border-rule-fuerte px-3 py-1.5 text-menudo text-tinta-tenue transition-colors hover:border-tinta hover:text-tinta"
+                      >
+                        + {s}
+                      </button>
+                    ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 pt-3 pb-safe bg-white border-t border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:hidden z-40 flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 z-40 flex gap-3 border-t border-tinta bg-hoja p-4 pb-safe pt-3 md:hidden">
         <button
           type="button"
-          onClick={() => router.push("/admin/properties")}
-          className="flex-1 py-3 rounded-lg border border-outline-variant bg-white text-charcoal font-medium font-body cursor-pointer"
+          onClick={() => router.push("/admin/propiedades")}
+          className="flex-1 border border-rule-fuerte bg-hoja-alta py-3 text-menudo font-medium text-tinta transition-colors hover:border-tinta"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="flex-1 py-3 rounded-lg bg-gold text-white font-medium font-body flex justify-center items-center gap-2 disabled:opacity-50 cursor-pointer"
+          className="flex flex-1 items-center justify-center gap-2 border border-tinta bg-tinta py-3 text-menudo font-medium text-hoja transition-colors hover:bg-charcoal-hover disabled:opacity-50"
         >
           {isLoading ? <FiRefreshCw className="animate-spin" /> : "Guardar"}
         </button>
       </div>
 
-      {/* Desktop sticky action bar (optional but nice for long forms) */}
-      <div className="hidden md:flex xl:col-span-12 justify-end gap-3 sticky bottom-0 bg-clear-day/90 backdrop-blur-sm py-4 pb-safe border-t border-charcoal/5 z-40">
+      {/* Barra de acciones fija en desktop */}
+      <div className="sticky bottom-0 z-40 hidden justify-end gap-3 border-t border-rule bg-hoja/95 py-4 pb-safe backdrop-blur-sm md:flex xl:col-span-12">
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-6 py-2.5 rounded-lg border border-outline-variant bg-white text-charcoal font-medium hover:bg-surface-container-low transition-colors cursor-pointer"
+          className="h-12 border border-rule-fuerte bg-hoja-alta px-6 text-menudo font-medium text-tinta transition-colors hover:border-tinta"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-6 py-2.5 rounded-lg bg-gold hover:bg-gold/90 text-white font-medium shadow-md transition-colors disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+          className="inline-flex h-12 items-center gap-2 border border-tinta bg-tinta px-6 text-menudo font-medium text-hoja transition-colors hover:bg-charcoal-hover disabled:opacity-50"
         >
           {isLoading ? (
             <FiRefreshCw className="animate-spin" />
           ) : (
             <>
-              <FiSave className="text-sm" />
+              <FiSave aria-hidden="true" />
               Guardar Propiedad
             </>
           )}

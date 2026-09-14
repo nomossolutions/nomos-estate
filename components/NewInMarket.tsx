@@ -1,10 +1,21 @@
 "use client";
 
-import PropertyCard from './ui/PropertyCard';
-import Pagination from './Pagination';
-import { Property } from '@/types/property';
-import content from '@/lib/i18n';
-import { useRouter, useSearchParams } from 'next/navigation';
+import PropertyCard from "./ui/PropertyCard";
+import Pagination from "./Pagination";
+import { SectionHeading } from "./ui/primitives";
+import { Property } from "@/types/property";
+import content from "@/lib/i18n";
+import { useRouter, useSearchParams } from "next/navigation";
+
+/*
+ * NewInMarket — Folio y Sello.
+ *
+ * Lo que cambió: se fue el header centrado con la hairline dorada debajo, las
+ * tabs en píldora blanca y la grilla de tarjetas flotantes. Ahora el encabezado
+ * va al margen con su índice colgando, los ejes de operación se leen por forma
+ * de línea, y la grilla son láminas numeradas que siguen la foliación real del
+ * catálogo (la serie no se reinicia en cada página).
+ */
 
 interface NewInMarketProps {
   properties: Property[];
@@ -12,6 +23,12 @@ interface NewInMarketProps {
   currentPage: number;
   pageSize: number;
 }
+
+const OPS = [
+  { value: "", label: "Todas" },
+  { value: "sale", label: "Comprar" },
+  { value: "rent", label: "Alquilar" },
+] as const;
 
 const NewInMarket = ({
   properties,
@@ -22,74 +39,87 @@ const NewInMarket = ({
   const totalPages = Math.ceil(totalCount / pageSize);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentOperation = searchParams.get('operation') || '';
+  const currentOperation = searchParams.get("operation") || "";
 
   const handleOperationChange = (operation: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (operation) {
-      params.set('operation', operation);
+      params.set("operation", operation);
     } else {
-      params.delete('operation');
+      params.delete("operation");
     }
-    params.delete('page');
-    router.push(`/?${params.toString()}`);
+    params.delete("page");
+    router.push(`/?${params.toString()}#propiedades`);
   };
 
-  const tabClass = (active: boolean) =>
-    `px-4 py-1.5 rounded text-sm font-medium cursor-pointer transition-colors ${
-      active ? 'bg-charcoal text-white shadow-sm' : 'text-text-muted hover:text-charcoal'
-    }`;
-
-  const mobileTabClass = (active: boolean) =>
-    `whitespace-nowrap px-4 py-1.5 rounded text-sm font-medium cursor-pointer transition-colors ${
-      active
-        ? 'bg-charcoal text-white shadow-sm'
-        : 'bg-white text-text-muted border border-charcoal/10 hover:text-charcoal'
-    }`;
-
   return (
-    <section id="properties" className="py-16">
-      <div className="flex flex-col gap-4 mb-10">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-light text-charcoal font-display">
-              {content.common.new_in_market}
-            </h2>
-            <div className="w-12 h-0.5 bg-gold/50 mt-3"></div>
-            <p className="text-text-muted mt-3 text-sm">
-              Oportunidades frescas agregadas esta semana.
-            </p>
+    <section id="propiedades" className="scroll-mt-24 py-16 md:py-24">
+      <SectionHeading
+        title={content.common.new_in_market}
+        measure="Oportunidades frescas agregadas esta semana."
+        action={
+          <div
+            role="group"
+            aria-label="Filtrar por operación"
+            className="mt-6 flex gap-7 sm:mt-0"
+          >
+            {OPS.map((op) => {
+              const activa = currentOperation === op.value;
+              return (
+                <button
+                  key={op.label}
+                  type="button"
+                  onClick={() => handleOperationChange(op.value)}
+                  aria-pressed={activa}
+                  className="group flex min-w-16 flex-col items-start gap-2"
+                >
+                  <span
+                    className={`text-menudo transition-colors ${
+                      activa
+                        ? "text-tinta"
+                        : "text-tinta-tenue group-hover:text-tinta"
+                    }`}
+                  >
+                    {op.label}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={
+                      activa
+                        ? "marca-linea--activa"
+                        : "marca-linea transition-colors group-hover:bg-rule-fuerte"
+                    }
+                  />
+                </button>
+              );
+            })}
           </div>
-          <div className="hidden md:flex bg-white p-1 rounded shrink-0" role="group" aria-label="Filtrar por operación">
-            <button onClick={() => handleOperationChange('')} aria-pressed={!currentOperation} className={tabClass(!currentOperation)}>
-              Todas
-            </button>
-            <button onClick={() => handleOperationChange('sale')} aria-pressed={currentOperation === 'sale'} className={tabClass(currentOperation === 'sale')}>
-              Comprar
-            </button>
-            <button onClick={() => handleOperationChange('rent')} aria-pressed={currentOperation === 'rent'} className={tabClass(currentOperation === 'rent')}>
-              Alquilar
-            </button>
-          </div>
-        </div>
-        <div className="flex md:hidden overflow-x-auto hide-scroll gap-2 -mx-4 px-4" role="group" aria-label="Filtrar por operación">
-          <button onClick={() => handleOperationChange('')} aria-pressed={!currentOperation} className={mobileTabClass(!currentOperation)}>
-            Todas
-          </button>
-          <button onClick={() => handleOperationChange('sale')} aria-pressed={currentOperation === 'sale'} className={mobileTabClass(currentOperation === 'sale')}>
-            Comprar
-          </button>
-          <button onClick={() => handleOperationChange('rent')} aria-pressed={currentOperation === 'rent'} className={mobileTabClass(currentOperation === 'rent')}>
-            Alquilar
-          </button>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {properties.map((property) => (
-          <PropertyCard key={property.id} property={property} />
-        ))}
-      </div>
+      {properties.length === 0 ? (
+        <div className="hoja mt-12 p-10 sm:p-16">
+          <p className="font-display text-folio text-tinta">
+            No encontramos propiedades con esta búsqueda.
+          </p>
+          <p className="mt-3 max-w-[46ch] text-menudo text-tinta-tenue">
+            Probá quitar algún filtro o buscar por otra localidad.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/#propiedades")}
+            className="mt-7 inline-flex h-11 items-center border border-rule-fuerte px-5 text-menudo font-medium text-tinta transition-colors hover:border-tinta"
+          >
+            Limpiar la búsqueda
+          </button>
+        </div>
+      ) : (
+        <div className="mt-12 grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+          {properties.map((property) => (
+            <PropertyCard key={property.id} property={property} />
+          ))}
+        </div>
+      )}
 
       <Pagination
         currentPage={currentPage}

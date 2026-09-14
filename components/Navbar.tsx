@@ -5,17 +5,38 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { FiHome, FiUser, FiMenu, FiX } from "react-icons/fi";
+import { FiUser, FiMenu, FiX } from "react-icons/fi";
 import type { User } from "@supabase/supabase-js";
 import LogoutButton from "./LogoutButton";
 import content from "@/lib/i18n";
+
+/*
+ * Navbar del sitio público — Folio y Sello.
+ *
+ * Los links son SIEMPRE los del sitio (Inicio, Propiedades, Sobre Nosotros), con
+ * sesión o sin ella. Antes, estar logueado como admin reemplazaba esta tabla por
+ * los links de gestión (Inicio / Propiedades / Usuarios del panel), así que el
+ * navbar del sitio público cambiaba de identidad según quién miraba.
+ *
+ * Ahora el acceso al panel vive donde corresponde: el icono de cuenta a la
+ * derecha, que lleva a /admin. El panel tiene su propia navegación interna
+ * (sidebar) y no necesita que el navbar público la duplique.
+ *
+ * Beneficio colateral: se fue la consulta a `user_roles` que este componente
+ * hacía en cada página solo para decidir qué links pintar.
+ */
+
+interface NavLink {
+  href: string;
+  label: string;
+  match: (pathname: string) => boolean;
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const supabase = createClient();
   const dict = content.navbar;
   const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const closeMobile = () => setIsMobileOpen(false);
@@ -26,257 +47,170 @@ export default function Navbar() {
         data: { user },
       } = await supabase.auth.getUser();
       setUser(user);
-      if (user) {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .single();
-        setIsAdmin(roleData?.role === "admin");
-      }
     };
     getUser();
   }, [supabase]);
 
-  const isActive = (href: string) => {
-    if (href === "/admin" && pathname === "/admin") return true;
-    if (
-      href === "/admin/properties" &&
-      pathname.startsWith("/admin/properties")
-    )
-      return true;
-    if (href === "/admin/users" && pathname.startsWith("/admin/users"))
-      return true;
-    if (href === "/" && pathname === "/") return true;
-    if (href === "/about" && pathname === "/about") return true;
-    return false;
-  };
-
-  const linkClass = (href: string) => {
-    return isActive(href)
-      ? "text-charcoal font-semibold border-b-2 border-charcoal"
-      : "text-text-secondary hover:text-charcoal font-medium border-b-2 border-transparent hover:border-charcoal/20";
-  };
-
-  const mobileLinkClass = (href: string) => {
-    return isActive(href)
-      ? "block px-3 py-2 rounded-md text-base font-medium text-charcoal bg-charcoal/5"
-      : "block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-charcoal/5";
-  };
-
-  const isAuthenticated = !!user;
+  const links: NavLink[] = [
+    { href: "/", label: dict.home, match: (p) => p === "/" },
+    {
+      href: "/#propiedades",
+      label: dict.properties,
+      match: (p) => p.startsWith("/properties"),
+    },
+    { href: "/about", label: dict.about, match: (p) => p === "/about" },
+  ];
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-white/10 shadow-sm transition-all duration-500 ease-in-out pt-safe">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <Link
-            href="/"
-            className="shrink-0 flex items-center gap-2 cursor-pointer"
-          >
-            <span className="text-xl font-bold tracking-tighter text-charcoal font-display">
+    <nav className="fixed top-0 z-50 w-full pt-safe">
+      <div className="border-b border-rule bg-hoja/95 backdrop-blur-md">
+        <div className="mx-auto flex h-20 max-w-tomo items-center justify-between gap-6 px-4 sm:px-6 lg:px-10">
+          {/* Wordmark: alineado al margen */}
+          <Link href="/" className="group flex shrink-0 items-baseline gap-3">
+            <span className="font-display text-marca font-normal tracking-[-0.015em] text-tinta">
               NOMOS
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {isAdmin ? (
-              <>
+          {/* Links del sitio: la misma tabla con sesión o sin ella */}
+          <div className="hidden items-center gap-9 md:flex">
+            {links.map((link) => {
+              const active = link.match(pathname);
+              return (
                 <Link
-                  href="/"
-                  className={`px-1 py-1 text-sm transition-all tracking-widest uppercase ${linkClass("/")}`}
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  className="group relative py-2 text-menudo transition-colors"
                 >
-                  Inicio
+                  <span
+                    className={
+                      active
+                        ? "text-tinta"
+                        : "text-tinta-tenue group-hover:text-tinta"
+                    }
+                  >
+                    {link.label}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={`absolute inset-x-0 bottom-0 ${
+                      active ? "marca-linea--activa-doble" : ""
+                    }`}
+                  />
                 </Link>
-                <Link
-                  href="/admin/properties"
-                  className={`px-1 py-1 text-sm transition-all tracking-widest uppercase ${linkClass("/admin/properties")}`}
-                >
-                  Propiedades
-                </Link>
-                <Link
-                  href="/admin/users"
-                  className={`px-1 py-1 text-sm transition-all tracking-widest uppercase ${linkClass("/admin/users")}`}
-                >
-                  Usuarios
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/#hero"
-                  className="text-text-secondary hover:text-charcoal font-medium text-sm tracking-widest uppercase hover:border-b-2 hover:border-charcoal/20 px-1 py-1 transition-all"
-                >
-                  {dict.home}
-                </Link>
-                <Link
-                  href="/#properties"
-                  className="text-text-secondary hover:text-charcoal font-medium text-sm tracking-widest uppercase hover:border-b-2 hover:border-charcoal/20 px-1 py-1 transition-all"
-                >
-                  {dict.properties}
-                </Link>
-                <Link
-                  href="/about"
-                  className={`px-1 py-1 text-sm transition-all tracking-widest uppercase ${linkClass("/about")}`}
-                >
-                  {dict.about}
-                </Link>
-              </>
-            )}
+              );
+            })}
           </div>
 
-          {/* Mobile Menu Toggle */}
-          <div className="flex items-center gap-2 md:hidden">
+          {/* Acciones */}
+          <div className="flex items-center gap-2">
+            {user ? (
+              <div className="hidden items-center gap-3 md:flex">
+                {/* Puerta de entrada al panel: objetivo táctil de 44px */}
+                <Link
+                  href="/admin"
+                  aria-label="Ir al panel de administración"
+                  title="Panel de administración"
+                  className="relative flex h-11 w-11 items-center justify-center overflow-hidden border border-rule transition-colors hover:border-tinta"
+                >
+                  {user.user_metadata?.avatar_url ? (
+                    <Image
+                      src={user.user_metadata.avatar_url}
+                      alt=""
+                      fill
+                      sizes="44px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <FiUser className="text-tinta-tenue" />
+                  )}
+                </Link>
+                {/* Cuenta y sesión: dos controles del mismo alto, un solo par */}
+                <LogoutButton />
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden h-11 items-center border border-tinta bg-tinta px-5 text-menudo font-medium text-hoja transition-colors hover:bg-charcoal-hover md:inline-flex"
+              >
+                {dict.login}
+              </Link>
+            )}
+
             <button
               onClick={() => setIsMobileOpen(!isMobileOpen)}
-              className="p-2 rounded-lg text-charcoal hover:bg-charcoal/5 transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none cursor-pointer"
+              className="flex h-11 w-11 items-center justify-center border border-rule text-tinta transition-colors hover:border-tinta md:hidden"
               aria-label={isMobileOpen ? "Cerrar menú" : "Abrir menú"}
               aria-expanded={isMobileOpen}
             >
-              {isMobileOpen ? (
-                <FiX className="text-xl" />
-              ) : (
-                <FiMenu className="text-xl" />
-              )}
+              {isMobileOpen ? <FiX /> : <FiMenu />}
             </button>
-          </div>
-
-          {/* Actions - Desktop only */}
-          <div className="hidden md:flex items-center gap-4">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <Link href="/admin" className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-full ring-2 ring-transparent hover:ring-gold transition-all relative flex items-center justify-center overflow-hidden">
-                    {user?.user_metadata?.avatar_url ? (
-                      <Image
-                        src={user.user_metadata.avatar_url}
-                        alt="Profile"
-                        fill
-                        sizes="36px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-                        <FiUser className="text-text-muted text-lg" />
-                      </div>
-                    )}
-                  </div>
-                </Link>
-                <LogoutButton className="text-text-secondary hover:text-burgundy transition-colors flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-charcoal/5 text-sm font-medium" />
-              </div>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="bg-charcoal hover:bg-charcoal-hover text-on-primary text-sm font-semibold px-6 py-3 rounded transition-all"
-                >
-                  {dict.login}
-                </Link>
-              </>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Menú móvil */}
       <div
-        className={`md:hidden border-t border-charcoal/10 bg-surface/95 backdrop-blur-xl overflow-hidden transition-all duration-300 ${isMobileOpen ? "max-h-96" : "max-h-0"}`}
-        role="navigation"
-        aria-label="Menú de navegación móvil"
+        className={`overflow-hidden border-b border-rule bg-hoja transition-[max-height] duration-300 md:hidden ${
+          isMobileOpen ? "max-h-[32rem]" : "max-h-0"
+        }`}
         aria-hidden={!isMobileOpen}
       >
-        <div className="px-4 py-2 space-y-1">
-          {isAdmin ? (
-            <>
+        <div className="space-y-0 px-4 py-2 sm:px-6">
+          {links.map((link) => {
+            const active = link.match(pathname);
+            return (
               <Link
-                href="/"
+                key={link.href}
+                href={link.href}
                 onClick={closeMobile}
-                className={mobileLinkClass("/")}
+                aria-current={active ? "page" : undefined}
+                className="flex items-center justify-between border-b border-rule/60 py-4 text-cuerpo text-tinta last:border-b-0"
               >
-                Inicio
+                {link.label}
+                {active && (
+                  <span aria-hidden="true" className="marca-linea--activa w-8" />
+                )}
               </Link>
-              <Link
-                href="/admin/properties"
-                onClick={closeMobile}
-                className={mobileLinkClass("/admin/properties")}
-              >
-                Propiedades
-              </Link>
-              <Link
-                href="/admin/users"
-                onClick={closeMobile}
-                className={mobileLinkClass("/admin/users")}
-              >
-                Usuarios
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/#hero"
-                onClick={closeMobile}
-                className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-charcoal/5"
-              >
-                {dict.home}
-              </Link>
-              <Link
-                href="/#properties"
-                onClick={closeMobile}
-                className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-charcoal/5"
-              >
-                {dict.properties}
-              </Link>
-              <Link
-                href="/about"
-                onClick={closeMobile}
-                className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-charcoal/5"
-              >
-                {dict.about}
-              </Link>
-            </>
-          )}
-          {/* Divider */}
-          <div className="border-t border-charcoal/10 my-2"></div>
-          {/* Mobile auth */}
-          {isAuthenticated ? (
-            <div className="space-y-1">
-              <Link
-                href="/admin"
-                onClick={closeMobile}
-                className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-charcoal/5"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden shrink-0">
-                    {user?.user_metadata?.avatar_url ? (
+            );
+          })}
+
+          <div className="py-4">
+            {user ? (
+              <div className="flex items-center justify-between gap-3">
+                <Link
+                  href="/admin"
+                  onClick={closeMobile}
+                  className="flex items-center gap-3 text-cuerpo text-tinta"
+                >
+                  <span className="flex h-11 w-11 items-center justify-center overflow-hidden border border-rule">
+                    {user.user_metadata?.avatar_url ? (
                       <Image
                         src={user.user_metadata.avatar_url}
-                        alt="Profile"
-                        width={32}
-                        height={32}
+                        alt=""
+                        width={44}
+                        height={44}
                         className="object-cover"
                       />
                     ) : (
-                      <FiUser className="text-text-muted text-sm" />
+                      <FiUser className="text-tinta-tenue" />
                     )}
-                  </div>
-                  <span>Mi Perfil</span>
-                </div>
-              </Link>
-              <LogoutButton className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-charcoal/5" />
-            </div>
-          ) : (
-            <div className="px-3 py-2">
+                  </span>
+                  Ir al panel
+                </Link>
+                <LogoutButton className="text-menudo text-tinta-tenue" />
+              </div>
+            ) : (
               <Link
                 href="/login"
                 onClick={closeMobile}
-                className="block w-full text-center bg-charcoal hover:bg-charcoal-hover text-white text-sm font-semibold px-5 py-3 rounded-lg transition-all"
+                className="flex h-12 w-full items-center justify-center border border-tinta bg-tinta text-menudo font-medium text-hoja"
               >
                 {dict.login}
               </Link>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </nav>

@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { FiArrowRight, FiArrowUp } from "react-icons/fi";
 
+/*
+ * ReadMore — Folio y Sello.
+ * Lo que cambió: se fue `prose` (que arrastra su propia escala tipográfica fuera
+ * del sistema) y el link dorado con salto de gap. Ahora es texto del sistema con
+ * una acción terciaria subrayada.
+ */
+
 interface ReadMoreProps {
   shortText: string;
   fullText: string;
@@ -14,19 +21,26 @@ export default function ReadMore({ shortText, fullText, label }: ReadMoreProps) 
 
   return (
     <div>
-      <div className="prose prose-slate max-w-none text-charcoal/70 leading-relaxed">
-        <p className="mb-4">{expanded ? fullText : shortText}</p>
-      </div>
+      <p className="max-w-[68ch] whitespace-pre-line text-cuerpo leading-relaxed text-tinta-media">
+        {expanded ? fullText : shortText}
+      </p>
       <button
+        type="button"
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        className="mt-4 text-gold font-semibold text-sm flex items-center gap-1 hover:gap-2 transition-all cursor-pointer"
+        className="group mt-5 inline-flex items-center gap-2 border-b border-transparent pb-1 text-menudo font-medium text-tinta transition-colors hover:border-tinta"
       >
         {expanded ? "Leer menos" : label}
         {expanded ? (
-          <FiArrowUp className="text-sm" />
+          <FiArrowUp
+            aria-hidden="true"
+            className="transition-transform duration-300 group-hover:-translate-y-0.5"
+          />
         ) : (
-          <FiArrowRight className="text-sm" />
+          <FiArrowRight
+            aria-hidden="true"
+            className="transition-transform duration-300 group-hover:translate-x-1"
+          />
         )}
       </button>
     </div>

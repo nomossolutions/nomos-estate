@@ -5,9 +5,25 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+/*
+ * LogoutButton — Sala Blanca.
+ *
+ * Lo que cambió: el fallback por defecto traía un estilo fuera del sistema
+ * —texto blanco translúcido, radio grande, hover a bordó— que no se parecía a
+ * nada del resto. Ahora es un control de borde, de la misma altura que el icono
+ * de cuenta que tiene al lado, así los dos se leen como un par y no como dos
+ * cosas sueltas.
+ *
+ * Se conserva el prop `className` para poder sobreescribirlo desde el panel, que
+ * lo usa en su propio sidebar.
+ */
+
 interface LogoutButtonProps {
   className?: string;
 }
+
+const POR_DEFECTO =
+  'inline-flex h-11 shrink-0 items-center gap-2 border border-rule px-4 text-menudo text-tinta-tenue transition-colors hover:border-tinta hover:text-tinta cursor-pointer';
 
 export default function LogoutButton({ className }: LogoutButtonProps) {
   const supabase = createClient();
@@ -20,12 +36,9 @@ export default function LogoutButton({ className }: LogoutButtonProps) {
   };
 
   return (
-    <button
-      onClick={handleLogout}
-      className={className || "text-white/70 hover:text-burgundy transition-colors flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/10 text-sm font-medium cursor-pointer"}
-    >
-      <FiLogOut className="text-lg" />
-      Cerrar Sesión
+    <button onClick={handleLogout} className={className || POR_DEFECTO}>
+      <FiLogOut aria-hidden="true" />
+      Cerrar sesión
     </button>
   );
 }

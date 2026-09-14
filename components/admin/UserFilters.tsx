@@ -3,10 +3,22 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiSearch } from "react-icons/fi";
 
+/*
+ * UserFilters — Folio y Sello.
+ *
+ * BUG CORREGIDO: los tabs eran cuatro, pero "Agentes" y "Corredores" tenían
+ * ambos `value: "user"`, así que filtraban exactamente lo mismo y la interfaz
+ * ofrecía dos opciones distintas que hacían una sola cosa. Peor: el modelo de
+ * datos solo tiene dos roles —`'admin' | 'user'` (confirmado en
+ * app/admin/usuarios/actions.ts)— así que "Agente" y "Corredor" no existen.
+ *
+ * Ahora los tabs dicen lo que el sistema realmente puede distinguir. Si en el
+ * futuro se agrega un rol `agent`, esto se amplía.
+ */
+
 const TABS = [
-  { label: "Todos los Usuarios", value: "" },
-  { label: "Agentes", value: "user" },
-  { label: "Corredores", value: "user" },
+  { label: "Todos", value: "" },
+  { label: "Usuarios", value: "user" },
   { label: "Administradores", value: "admin" },
 ] as const;
 
@@ -23,17 +35,18 @@ export function UserSearch() {
       params.delete("q");
     }
     params.delete("page");
-    router.push(`/admin/users?${params.toString()}`);
+    router.push(`/admin/usuarios?${params.toString()}`);
   };
 
   return (
-    <div className="relative group w-full md:w-80">
-      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <FiSearch className="text-charcoal/40 group-focus-within:text-gold text-xl" />
-      </div>
+    <div className="relative w-full md:w-80">
+      <FiSearch
+        aria-hidden="true"
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-tinta-tenue"
+      />
       <input
-        className="block w-full pl-10 pr-3 py-2.5 border-none rounded-lg bg-white text-charcoal shadow-soft placeholder:text-text-muted/30 focus:ring-2 focus:ring-gold focus:bg-white transition-all text-sm"
-        placeholder="Buscar por nombre, email..."
+        className="h-11 w-full border border-rule-fuerte bg-hoja-alta pl-10 pr-3 text-menudo text-tinta placeholder:text-tinta-tenue/70 transition-colors focus:border-tinta focus:outline-none"
+        placeholder="Buscar por nombre o email…"
         type="text"
         aria-label="Buscar usuarios"
         defaultValue={currentSearch}
@@ -56,27 +69,42 @@ export function UserTabs() {
       params.delete("role");
     }
     params.delete("page");
-    router.push(`/admin/users?${params.toString()}`);
+    router.push(`/admin/usuarios?${params.toString()}`);
   };
 
-  const tabClass = (active: boolean) =>
-    `whitespace-nowrap pb-3 text-sm transition-colors min-h-[44px] cursor-pointer border-b-2 ${
-      active
-        ? "font-semibold text-gold border-gold"
-        : "font-medium text-charcoal/60 hover:text-charcoal border-transparent"
-    }`;
-
   return (
-    <div className="flex gap-6 border-b border-charcoal/10 overflow-x-auto hide-scroll">
-      {TABS.map((tab) => (
-        <button
-          key={tab.label}
-          onClick={() => handleRoleChange(tab.value)}
-          className={tabClass(currentRole === tab.value)}
-        >
-          {tab.label}
-        </button>
-      ))}
+    <div
+      role="group"
+      aria-label="Filtrar por rol"
+      className="hide-scroll flex gap-8 overflow-x-auto border-b border-rule pb-4"
+    >
+      {TABS.map((tab) => {
+        const activa = currentRole === tab.value;
+        return (
+          <button
+            key={tab.label}
+            onClick={() => handleRoleChange(tab.value)}
+            aria-pressed={activa}
+            className="group flex min-w-20 flex-col items-start gap-2"
+          >
+            <span
+              className={`text-menudo transition-colors ${
+                activa ? "text-tinta" : "text-tinta-tenue group-hover:text-tinta"
+              }`}
+            >
+              {tab.label}
+            </span>
+            <span
+              aria-hidden="true"
+              className={
+                activa
+                  ? "marca-linea--activa"
+                  : "marca-linea transition-colors group-hover:bg-rule-fuerte"
+              }
+            />
+          </button>
+        );
+      })}
     </div>
   );
 }

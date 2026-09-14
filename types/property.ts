@@ -23,4 +23,10 @@ export interface Property {
   year_built?: number;
   parking?: number;
   amenities?: string[];
+  /**
+   * Categoría de la propiedad, definida por el admin en /admin/categorias.
+   * Antes la categoría no era un dato: se infería del título.
+   * Requiere la migración 20260914_categorias_de_propiedad.sql.
+   */
+  category_id?: string | null;
 }

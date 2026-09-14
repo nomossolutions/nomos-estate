@@ -34,7 +34,7 @@ export async function toggleUserRole(userId: string, currentRole: string) {
     throw new Error('Failed to update role');
   }
 
-  revalidatePath('/admin/users');
+  revalidatePath('/admin/usuarios');
 }
 
 export async function createUserRole(formData: FormData) {
@@ -97,5 +97,5 @@ export async function createUserRole(formData: FormData) {
     if (error) throw new Error('Error al asignar el rol');
   }
 
-  revalidatePath('/admin/users');
+  revalidatePath('/admin/usuarios');
 }

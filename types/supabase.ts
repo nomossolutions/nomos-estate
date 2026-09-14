@@ -17,6 +17,9 @@ export type Database = {
           amenities: string[] | null;
           baths: number;
           beds: number;
+          /* Categoría editable desde el panel. La agrega la migración
+             supabase/migrations/20260914_categorias_de_propiedad.sql */
+          category_id: string | null;
           created_at: string;
           description: string | null;
           id: string;
@@ -39,6 +42,7 @@ export type Database = {
           amenities?: string[] | null;
           baths: number;
           beds: number;
+          category_id?: string | null;
           created_at?: string;
           description?: string | null;
           id?: string;
@@ -61,6 +65,7 @@ export type Database = {
           amenities?: string[] | null;
           baths?: number;
           beds?: number;
+          category_id?: string | null;
           created_at?: string;
           description?: string | null;
           id?: string;
@@ -78,6 +83,33 @@ export type Database = {
           title?: string;
           type?: Database['public']['Enums']['property_type'];
           year_built?: number | null;
+        };
+        Relationships: [];
+      };
+      property_categories: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          slug: string;
+          sort_order: number;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          slug: string;
+          sort_order?: number;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          slug?: string;
+          sort_order?: number;
         };
         Relationships: [];
       };

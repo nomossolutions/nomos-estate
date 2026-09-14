@@ -1,10 +1,23 @@
 "use client";
 
-import { FiHome, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
+import { Rule } from "@/components/ui/primitives";
+
+/*
+ * Login — Folio y Sello.
+ * Lo que cambió: se fue el icono en caja carbón, el `shadow-[0_8px_30px_…]` y los
+ * campos con radio grande y ring dorado. Ahora es la hoja de acceso del tomo:
+ * membrillo, reglas y una sola acción primaria.
+ * La lógica de autenticación no se tocó.
+ */
+
+const CAMPO =
+  "w-full border border-rule-fuerte bg-hoja-alta px-4 py-3 text-cuerpo text-tinta placeholder:text-tinta-tenue/70 transition-colors focus:border-tinta focus:outline-none";
 
 export default function LoginPage() {
   const supabase = createClient();
@@ -46,91 +59,90 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-clear-day min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <main className="w-full max-w-md z-10 flex flex-col items-center">
-        <div className="text-center mb-8 flex flex-col items-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-charcoal rounded mb-4 text-white">
-            <FiHome className="text-2xl" />
+    <main className="mx-auto flex min-h-screen max-w-tomo items-center px-4 pt-32 pb-20 sm:px-6 lg:px-10">
+      <div className="w-full max-w-md">
+        {/* Marca: identifica el sitio, no es el titular de la página */}
+        <div className="flex items-baseline justify-between gap-4">
+          <Link
+            href="/"
+            className="font-display text-marca tracking-[-0.015em] text-tinta"
+          >
+            NOMOS
+          </Link>
+          <span className="indicador">Acceso</span>
+        </div>
+        <Rule weight="fuerte" className="mt-4" />
+
+        <h1 className="mt-8 font-display text-titulo font-normal text-tinta">
+          Entrá a tu cuenta
+        </h1>
+        <p className="mt-4 max-w-[42ch] text-menudo text-tinta-tenue">
+          Los agentes administran el catálogo y los usuarios desde acá.
+        </p>
+
+        <form onSubmit={handleEmailLogin} className="mt-9 space-y-6">
+          <div>
+            <label htmlFor="email" className="indicador mb-2 block">
+              Correo electrónico
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@ejemplo.com"
+              className={CAMPO}
+            />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-charcoal mb-1.5">
-            Bienvenido a NomosEstate
-          </h1>
-          <p className="text-text-muted text-sm">
-            Descubre propiedades exclusivas alrededor del mundo.
-          </p>
-        </div>
 
-        <div className="bg-white w-full  p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-text-muted mb-1.5"
-              >
-                Correo electrónico
-              </label>
+          <div>
+            <label htmlFor="password" className="indicador mb-2 block">
+              Contraseña
+            </label>
+            <div className="relative">
               <input
-                id="email"
-                type="email"
-                autoComplete="email"
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@ejemplo.com"
-                className="w-full border border-charcoal/10 rounded-lg px-3.5 py-3 text-sm text-charcoal placeholder-text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold transition"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className={`${CAMPO} pr-12`}
               />
-            </div>
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-text-muted mb-1.5"
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-tinta-tenue transition-colors hover:text-tinta"
+                aria-label={
+                  showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
               >
-                Contraseña
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full border border-charcoal/10 rounded-lg px-3.5 py-3 pr-11 text-sm text-charcoal placeholder-text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-charcoal transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none rounded cursor-pointer"
-                  aria-label={
-                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-                  }
-                >
-                  {showPassword ? (
-                    <FiEyeOff className="text-lg" />
-                  ) : (
-                    <FiEye className="text-lg" />
-                  )}
-                </button>
-              </div>
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
             </div>
+          </div>
 
-            {error && (
-              <p role="alert" className="text-sm text-burgundy bg-burgundy/10 rounded-lg px-3 py-2">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-charcoal hover:bg-charcoal-hover disabled:opacity-60 text-white font-semibold text-sm rounded-lg py-3 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gold/40 cursor-pointer"
+          {error && (
+            <p
+              role="alert"
+              className="border border-laca/30 bg-laca-tenue px-4 py-3 text-menudo text-laca"
             >
-              {loading ? "Iniciando sesión…" : "Iniciar sesión"}
-            </button>
-          </form>
-        </div>
-      </main>
-    </div>
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex h-14 w-full items-center justify-center border border-tinta bg-tinta text-menudo font-medium text-hoja transition-colors hover:bg-charcoal-hover disabled:opacity-50"
+          >
+            {loading ? "Iniciando sesión…" : "Iniciar sesión"}
+          </button>
+        </form>
+      </div>
+    </main>
   );
 }

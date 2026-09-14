@@ -25,7 +25,7 @@ interface PropertyMapProps {
 
 export default function PropertyMap({ lat, lng, address }: PropertyMapProps) {
   return (
-    <div className="relative w-full aspect-4/3 rounded-lg overflow-hidden bg-surface-dim z-0">
+    <div className="relative z-0 aspect-4/3 w-full overflow-hidden rounded border border-rule bg-hoja-baja">
       <MapContainer
         center={[lat, lng]}
         zoom={14}

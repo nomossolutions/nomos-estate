@@ -1,28 +1,58 @@
-import {
-  FiMapPin,
-  FiMove,
-  FiHome,
-  FiDroplet,
-  FiNavigation,
-  FiCheckCircle,
-} from "react-icons/fi";
+import { FiMapPin, FiMove, FiHome, FiDroplet, FiNavigation } from "react-icons/fi";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import PropertyGallery from "@/components/PropertyGallery";
 import DynamicPropertyMap from "@/components/DynamicPropertyMap";
 import AgentContact from "@/components/AgentContact";
 import ReadMore from "@/components/ReadMore";
+import { Rule } from "@/components/ui/primitives";
 import content from "@/lib/i18n";
 import { cache } from "react";
 
-const getProperty = cache(async (slug: string) => {
+/*
+ * Ficha de propiedad — Folio y Sello.
+ *
+ * Lo que cambió: era una pila de cinco cajas blancas idénticas con
+ * `hover:shadow-elevated`, cada una con sus propias esquinas redondeadas, más una
+ * grilla de cuatro recuadros con fondo dorado para los metros, habitaciones,
+ * baños y garaje. Eso era el cliché de "tarjetas anidadas".
+ *
+ * Ahora: una sola hoja continua separada por reglas, los datos técnicos como
+ * registro en vez de recuadros, y el precio en la display como única pieza de escala
+ * grande. El borde superior del folio lleva el número de serie.
+ */
+
+/*
+ * Busca por slug y, si no encuentra, por id.
+ *
+ * Por qué: los enlaces del panel y de las tarjetas usan
+ * `property.slug || property.id`, así que un enlace puede perfectamente traer un
+ * id. Buscar solo por slug hacía que esa segunda mitad del fallback fuera
+ * mentira: el enlace existía pero la página devolvía 404. Ahora las dos formas
+ * resuelven.
+ */
+const getProperty = cache(async (slugOId: string) => {
   const supabase = await createClient();
-  const { data } = await supabase
+
+  const { data: porSlug } = await supabase
     .from("properties")
     .select("*")
-    .eq("slug", slug)
-    .single();
-  return data;
+    .eq("slug", slugOId)
+    .maybeSingle();
+  if (porSlug) return porSlug;
+
+  const esUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      slugOId,
+    );
+  if (!esUuid) return null;
+
+  const { data: porId } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("id", slugOId)
+    .maybeSingle();
+  return porId;
 });
 
 interface PropertyPageProps {
@@ -61,111 +91,118 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
     notFound();
   }
 
-  // Format currency
   const formattedPrice = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(property.price);
 
+  const esAlquiler = property.type === "rent";
+
+  const especificaciones = [
+    { icon: <FiMove />, valor: property.sqft, label: t.square_meters },
+    { icon: <FiHome />, valor: property.beds, label: t.bedrooms },
+    { icon: <FiDroplet />, valor: property.baths, label: t.bathrooms },
+    { icon: <FiNavigation />, valor: property.parking ?? 0, label: t.garage },
+  ];
+
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-10">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-        <div className="lg:col-span-8 space-y-4">
+    <main className="mx-auto max-w-tomo px-4 pt-28 pb-20 sm:px-6 lg:px-10">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+        {/* Fotografías */}
+        <div className="lg:col-span-8">
           <PropertyGallery
             images={property.images ?? []}
             title={property.title}
           />
         </div>
 
-        <div className="lg:col-span-4 relative">
-          <div className="sticky top-28 space-y-6">
-            <div className="bg-white p-6  border border-outline-variant/30 hover:shadow-elevated transition-all duration-400">
-              <div className="mb-4">
-                <h1 className="text-4xl font-display font-light text-charcoal mb-2">
-                  {formattedPrice}
-                </h1>
-                <p className="text-charcoal/60 font-medium flex items-center gap-1">
-                  <FiMapPin className="text-gold text-sm" />
-                  {property.location}
-                </p>
-              </div>
+        {/* Datos y consultas */}
+        <aside className="lg:col-span-4">
+          <div className="lg:sticky lg:top-28">
+            <h1 className="font-display text-tasacion font-normal text-tinta">
+              {formattedPrice}
+              {esAlquiler && (
+                <span className="font-body text-menudo text-tinta-tenue">
+                  {" "}
+                  /mes
+                </span>
+              )}
+            </h1>
 
-              <div className="h-px bg-outline-variant/30 my-6"></div>
+            {/* Operación: el dato que interpreta el precio, como etiqueta */}
+            <p className="indicador mt-3 text-tinta">
+              {esAlquiler ? "En alquiler" : "En venta"}
+            </p>
 
+            <p className="mt-4 font-display text-lamina font-normal text-tinta">
+              {property.title}
+            </p>
+            <p className="mt-2 flex items-start gap-2 text-menudo text-tinta-tenue">
+              <FiMapPin aria-hidden="true" className="mt-0.5 shrink-0" />
+              {property.location}
+            </p>
+
+            <div className="mt-8">
               <AgentContact
                 scheduleVisitLabel={t.schedule_visit}
                 contactAgentLabel={t.contact_agent}
               />
             </div>
 
-            <div className="bg-white p-2 border border-outline-variant/30 hover:shadow-elevated transition-all duration-400">
+            {/* Mapa */}
+            <div className="mt-8">
+              <Rule />
+              <p className="indicador pb-4 pt-4">Ubicación</p>
               {property.lat && property.lng ? (
-                <DynamicPropertyMap
-                  lat={property.lat}
-                  lng={property.lng}
-                  address={property.location}
-                />
+                <div className="relative aspect-4/3 w-full overflow-hidden border border-rule">
+                  <DynamicPropertyMap
+                    lat={property.lat}
+                    lng={property.lng}
+                    address={property.location}
+                  />
+                </div>
               ) : (
-                <div className="relative w-full aspect-4/3 rounded-lg overflow-hidden bg-surface-dim flex items-center justify-center">
-                  <span className="text-charcoal/50 font-medium">
+                <div className="flex aspect-4/3 w-full items-center justify-center border border-rule bg-hoja-baja">
+                  <span className="text-menudo text-tinta-tenue">
                     {t.map_unavailable}
                   </span>
                 </div>
               )}
             </div>
           </div>
-        </div>
+        </aside>
 
-        <div className="lg:col-span-8 lg:row-start-2 -mt-8 space-y-8">
-          <div className="bg-white p-8 border border-outline-variant/30 hover:shadow-elevated transition-all duration-400">
-            <h2 className="text-lg font-semibold mb-6 text-charcoal font-display">
-              {t.property_features}
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="flex flex-col items-center justify-center p-4 bg-gold/5 rounded-lg border border-gold/10">
-                <FiMove className="text-gold text-2xl mb-2" />
-                <span className="text-xl font-bold text-charcoal">
-                  {property.sqft}
-                </span>
-                <span className="text-xs uppercase tracking-wider text-charcoal/50">
-                  {t.square_meters}
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-gold/5 rounded-lg border border-gold/10">
-                <FiHome className="text-gold text-2xl mb-2" />
-                <span className="text-xl font-bold text-charcoal">
-                  {property.beds}
-                </span>
-                <span className="text-xs uppercase tracking-wider text-charcoal/50">
-                  {t.bedrooms}
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-gold/5 rounded-lg border border-gold/10">
-                <FiDroplet className="text-gold text-2xl mb-2" />
-                <span className="text-xl font-bold text-charcoal">
-                  {property.baths}
-                </span>
-                <span className="text-xs uppercase tracking-wider text-charcoal/50">
-                  {t.bathrooms}
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-gold/5 rounded-lg border border-gold/10">
-                <FiNavigation className="text-gold text-2xl mb-2" />
-                <span className="text-xl font-bold text-charcoal">
-                  {property.parking ?? 0}
-                </span>
-                <span className="text-xs uppercase tracking-wider text-charcoal/50">
-                  {t.garage}
-                </span>
-              </div>
-            </div>
-          </div>
+        {/* Registro técnico */}
+        <section className="lg:col-span-8">
+          <Rule weight="fuerte" />
+          <h2 className="indicador pb-2 pt-4">{t.property_features}</h2>
 
-          <div className="bg-white p-8 border border-outline-variant/30 hover:shadow-elevated transition-all duration-400">
-            <h2 className="text-lg font-semibold mb-4 text-charcoal font-display">
-              {t.about_home}
-            </h2>
+          <dl className="divide-y divide-rule">
+            {especificaciones.map((fila) => (
+              <div
+                key={fila.label}
+                className="flex items-baseline justify-between gap-6 py-5"
+              >
+                <dt className="flex items-center gap-3 text-menudo text-tinta-media">
+                  <span aria-hidden="true" className="text-tinta-tenue">
+                    {fila.icon}
+                  </span>
+                  {fila.label}
+                </dt>
+                <dd className="tabular font-display text-folio leading-none text-tinta">
+                  {fila.valor}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* Descripción y comodidades */}
+        <div className="space-y-14 lg:col-span-8">
+          <section>
+            <Rule weight="fuerte" />
+            <h2 className="indicador pb-4 pt-4">{t.about_home}</h2>
             <ReadMore
               shortText={`Experimenta el lujo moderno en esta obra maestra arquitectónica ubicada en el corazón de ${property.location.split(",")[0] || "la ciudad"}.`}
               fullText={`Experimenta el lujo moderno en esta obra maestra arquitectónica ubicada en el corazón de ${property.location.split(",")[0] || "la ciudad"}. Diseñada con un enfoque en la vida interior-exterior, la residencia cuenta con ventanales de piso a techo que inundan los interiores de luz natural.
@@ -173,45 +210,28 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
 La cocina de concepto abierto está equipada con electrodomésticos de primera línea y gabinetes a medida, perfecta para los entusiastas de la gastronomía. La suite principal es un santuario de relajación con baño estilo spa y balcón privado.`}
               label={t.read_more}
             />
-          </div>
+          </section>
 
-          <div className="bg-white p-8 border border-outline-variant/30 hover:shadow-elevated transition-all duration-400">
-            <h2 className="text-lg font-semibold mb-6 text-charcoal font-display">
-              {t.amenities}
-            </h2>
+          <section>
+            <Rule weight="fuerte" />
+            <h2 className="indicador pb-4 pt-4">{t.amenities}</h2>
             {property.amenities && property.amenities.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+              <ul className="grid grid-cols-1 gap-x-10 sm:grid-cols-2">
                 {property.amenities.map((amenity) => (
-                  <div key={amenity} className="flex items-center gap-3 text-charcoal/70">
-                    <FiCheckCircle className="text-gold/60 text-sm" />
-                    <span>{amenity}</span>
-                  </div>
+                  <li
+                    key={amenity}
+                    className="border-b border-rule py-3 text-menudo text-tinta-media"
+                  >
+                    {amenity}
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <p className="text-charcoal/50 text-sm">No hay comodidades especificadas.</p>
+              <p className="text-menudo text-tinta-tenue">
+                No hay comodidades especificadas.
+              </p>
             )}
-          </div>
-
-          {/* <div className="bg-gold/5 p-6 rounded-lg border border-gold/10 flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-white rounded-full text-gold shadow-sm">
-                <FiHash className="text-xl" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-charcoal font-display">
-                  {t.estimated_payment}
-                </h3>
-                <p className="text-sm text-charcoal/60">
-                  {t.starting_from}{" "}
-                  <strong className="text-gold">$5,430/mes</strong> 20% {t.down}
-                </p>
-              </div>
-            </div>
-            <button className="whitespace-nowrap px-4 py-2 bg-white border border-charcoal/10 rounded-lg text-sm font-semibold hover:border-gold transition-colors text-charcoal cursor-pointer">
-              {t.calculate_mortgage}
-            </button>
-          </div> */}
+          </section>
         </div>
       </div>
     </main>

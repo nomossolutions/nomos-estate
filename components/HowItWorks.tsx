@@ -1,75 +1,60 @@
-import { FiSearch, FiMessageCircle, FiKey } from "react-icons/fi";
+import { Rule } from "./ui/primitives";
 
-const steps = [
+/*
+ * HowItWorks — Folio y Sello.
+ *
+ * Lo que cambió: se fue el icono en círculo con borde dorado, el badge numerado
+ * superpuesto y la hairline dorada centrada debajo del título. Eso era el patrón
+ * más repetido de la interfaz.
+ *
+ * Los pasos se presentan como un registro: el número vive en el canto, la
+ * secuencia se lee por la línea que las une, y cada paso tiene un título y una
+ * línea de qué hace el sistema — sin métricas inventadas.
+ */
+
+const PASOS = [
   {
-    icon: <FiSearch className="text-2xl" />,
-    number: "01",
-    title: "Explora",
-    description:
-      "Descubre propiedades exclusivas seleccionadas para los más exigentes.",
+    numero: "01",
+    titulo: "Filtrá",
+    detalle:
+      "Acotá el catálogo por localidad, precio, tipo de propiedad y cantidad de ambientes.",
   },
   {
-    icon: <FiMessageCircle className="text-2xl" />,
-    number: "02",
-    title: "Conecta",
-    description:
-      "Habla con un agente especializado que entiende tus necesidades.",
+    numero: "02",
+    titulo: "Revisá",
+    detalle:
+      "Cada propiedad tiene su ficha: fotos, ubicación en el mapa, metros, garaje y comodidades.",
   },
   {
-    icon: <FiKey className="text-2xl" />,
-    number: "03",
-    title: "Consigue",
-    description: "Cierra tu compra con confianza y seguridad absoluta.",
+    numero: "03",
+    titulo: "Coordiná",
+    detalle:
+      "Escribile al agente desde la ficha y agendá la visita sin salir de la plataforma.",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="py-16 md:py-20 mb-16">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-light text-charcoal font-display">
-            Cómo funciona
-          </h2>
-          <div className="w-12 h-0.5 bg-gold/50 mx-auto mt-4"></div>
-          <p className="text-text-muted mt-4 text-sm max-w-md mx-auto">
-            Tres pasos simples para encontrar tu próximo hogar.
-          </p>
-        </div>
+    <section className="py-16 md:py-24">
+      <h2 className="font-display text-titulo font-normal text-tinta">
+        Cómo funciona
+      </h2>
 
-        {/* Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          {steps.map((step, index) => (
-            <div key={step.number} className="relative group">
-              {/* Connector Line (desktop only) */}
-              {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-8 left-[calc(50%+32px)] w-[calc(100%-64px)] h-px bg-gradient-to-r from-gold/30 to-transparent" />
-              )}
-
-              <div className="flex flex-col items-center text-center">
-                {/* Icon Container */}
-                <div className="relative mb-6">
-                  <div className="w-16 h-16 rounded-full bg-surface-container-low border border-gold/20 flex items-center justify-center text-gold  transition-all duration-300">
-                    {step.icon}
-                  </div>
-                  {/* Step Number */}
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-charcoal text-white text-[10px] font-bold flex items-center justify-center font-sans">
-                    {step.number}
-                  </span>
-                </div>
-
-                {/* Content */}
-                <h3 className="text-lg font-semibold text-charcoal font-display mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-text-muted leading-relaxed max-w-[240px]">
-                  {step.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="mt-12 grid grid-cols-1 gap-y-10 md:grid-cols-3 md:gap-x-12 md:gap-y-0">
+        {PASOS.map((paso, idx) => (
+          <div key={paso.numero} className="flex flex-col">
+            <Rule weight={idx === 0 ? "fuerte" : "fina"} />
+            <span className="indicador tabular mt-5 text-tinta">
+              {paso.numero}
+            </span>
+            <h3 className="mt-3 font-display text-folio font-normal text-tinta">
+              {paso.titulo}
+            </h3>
+            <p className="mt-3 max-w-[38ch] text-menudo leading-relaxed text-tinta-tenue">
+              {paso.detalle}
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   );

@@ -1,119 +1,146 @@
-import Link from 'next/link';
-import { FiInstagram, FiFacebook, FiTwitter, FiLinkedin, FiMapPin, FiPhone, FiMail } from 'react-icons/fi';
-import content from '@/lib/i18n';
+import Link from "next/link";
+import {
+  FiInstagram,
+  FiFacebook,
+  FiTwitter,
+  FiLinkedin,
+  FiMapPin,
+  FiPhone,
+  FiMail,
+} from "react-icons/fi";
+import { Rule } from "./ui/primitives";
+import content from "@/lib/i18n";
+
+/*
+ * Footer — Folio y Sello.
+ *
+ * Lo que cambió: era un bloque carbón con círculos sociales que se rellenaban de
+ * dorado al hover. Ahora se lee como el colofón de un tomo: la marca, tres
+ * columnas de referencia y una línea de cierre, todo separado por reglas.
+ *
+ * El copy de contacto (dirección, teléfono, correo) queda tal cual: es contenido
+ * factual y no me corresponde reemplazarlo.
+ */
 
 const Footer = () => {
   const f = content.footer;
 
-  const socialLinks = [
-    { icon: <FiInstagram className="text-lg" />, href: '#', label: 'Instagram' },
-    { icon: <FiFacebook className="text-lg" />, href: '#', label: 'Facebook' },
-    { icon: <FiTwitter className="text-lg" />, href: '#', label: 'Twitter' },
-    { icon: <FiLinkedin className="text-lg" />, href: '#', label: 'LinkedIn' },
+  const redes = [
+    { icon: <FiInstagram />, href: "#", label: "Instagram" },
+    { icon: <FiFacebook />, href: "#", label: "Facebook" },
+    { icon: <FiTwitter />, href: "#", label: "Twitter" },
+    { icon: <FiLinkedin />, href: "#", label: "LinkedIn" },
   ];
 
-  const navigationLinks = [
-    { label: 'Inicio', href: '/' },
-    { label: 'Propiedades', href: '/#properties' },
-    { label: 'Sobre Nosotros', href: '/about' },
-    { label: 'Iniciar Sesión', href: '/login' },
+  const navegacion = [
+    { label: "Inicio", href: "/" },
+    { label: "Propiedades", href: "/#propiedades" },
+    { label: "Sobre Nosotros", href: "/about" },
+    { label: "Iniciar Sesión", href: "/login" },
+  ];
+
+  const contacto = [
+    {
+      icon: <FiMapPin />,
+      text: "123 Avenue Design, Miami, FL",
+      href: undefined,
+    },
+    {
+      icon: <FiPhone />,
+      text: "+1 (305) 555-1234",
+      href: "tel:+13055551234",
+    },
+    {
+      icon: <FiMail />,
+      text: "hola@nomosestate.com",
+      href: "mailto:hola@nomosestate.com",
+    },
   ];
 
   return (
-    <footer className="bg-charcoal text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-8">
-          {/* Brand Column */}
-          <div className="lg:col-span-1">
-            <Link href="/" className="inline-block">
-              <span className="text-2xl font-bold tracking-tighter font-display">
-                NOMOS
-              </span>
-            </Link>
-            <p className="text-white/60 text-sm mt-4 leading-relaxed max-w-xs">
+    <footer className="mt-16 border-t-2 border-tinta bg-tinta text-hoja">
+      <div className="mx-auto max-w-tomo px-4 py-16 sm:px-6 lg:px-10">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:gap-8">
+          {/* Colofón */}
+          <div className="md:col-span-5">
+            <span className="font-display text-colofon tracking-[-0.015em]">NOMOS</span>
+            <p className="mt-5 max-w-[42ch] text-menudo leading-relaxed text-hoja/60">
               {f.description}
             </p>
-            {/* Social Links */}
-            <div className="flex gap-3 mt-6">
-              {socialLinks.map((social) => (
+            <div className="mt-7 flex gap-2">
+              {redes.map((red) => (
                 <a
-                  key={social.label}
-                  href={social.href}
+                  key={red.label}
+                  href={red.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={social.label}
-                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:bg-gold hover:text-white transition-all"
+                  aria-label={red.label}
+                  className="flex h-10 w-10 items-center justify-center border border-hoja/25 text-hoja/70 transition-colors hover:border-hoja hover:text-hoja"
                 >
-                  {social.icon}
+                  {red.icon}
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Navigation Column */}
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-white/90 mb-5">
-              Navegación
-            </h3>
-            <ul className="space-y-3">
-              {navigationLinks.map((link) => (
+          {/* Referencia */}
+          <nav className="md:col-span-3 md:col-start-7" aria-label="Navegación">
+            <h2 className="indicador text-hoja/50">Navegación</h2>
+            <ul className="mt-5 space-y-3">
+              {navegacion.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-white/60 text-sm hover:text-gold transition-colors"
+                    className="border-b border-transparent text-menudo text-hoja/70 transition-colors hover:border-hoja/40 hover:text-hoja"
                   >
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
-          {/* Contact Column */}
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-white/90 mb-5">
-              Contacto
-            </h3>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <FiMapPin className="text-gold mt-0.5 shrink-0" />
-                <span className="text-white/60 text-sm">
-                  123 Avenue Design, Miami, FL
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <FiPhone className="text-gold shrink-0" />
-                <a href="tel:+13055551234" className="text-white/60 text-sm hover:text-gold transition-colors">
-                  +1 (305) 555-1234
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <FiMail className="text-gold shrink-0" />
-                <a href="mailto:hola@nomosestate.com" className="text-white/60 text-sm hover:text-gold transition-colors">
-                  hola@nomosestate.com
-                </a>
-              </li>
+          <div className="md:col-span-3">
+            <h2 className="indicador text-hoja/50">Contacto</h2>
+            <ul className="mt-5 space-y-4">
+              {contacto.map((item) => (
+                <li key={item.text} className="flex items-start gap-3">
+                  <span aria-hidden="true" className="mt-0.5 text-hoja/40">
+                    {item.icon}
+                  </span>
+                  {item.href ? (
+                    <a
+                      href={item.href}
+                      className="border-b border-transparent text-menudo text-hoja/70 transition-colors hover:border-hoja/40 hover:text-hoja"
+                    >
+                      {item.text}
+                    </a>
+                  ) : (
+                    <span className="text-menudo text-hoja/70">{item.text}</span>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
-
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-white/40 text-xs">
-            © {new Date().getFullYear()} Nomos Estate. Todos los derechos reservados.
-          </div>
-          <div className="text-white/40 text-xs">
-            Desarrollado por{' '}
+        <Rule className="mt-14 bg-hoja/15" />
+        <div className="flex flex-col gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="indicador text-hoja/45">
+            © {new Date().getFullYear()} Nomos Estate. Todos los derechos
+            reservados.
+          </p>
+          <p className="indicador text-hoja/45">
+            Desarrollado por{" "}
             <a
               href="https://www.nomosdigital.com.ar"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-white/70 transition-colors"
+              className="border-b border-transparent text-hoja/70 transition-colors hover:border-hoja/40"
             >
               Nomos Digital
             </a>
-          </div>
+          </p>
         </div>
       </div>
     </footer>

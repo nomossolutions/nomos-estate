@@ -1,132 +1,247 @@
 @import 'tailwindcss';
 
+/*
+ * SISTEMA — Sala Blanca
+ *
+ * Un espacio neutro y frío donde la fotografía es la obra y el vacío hace el
+ * trabajo. El mundo anterior ("Folio y Sello") tomaba su autoridad del protocolo
+ * documental; este la toma de la precisión y del aire.
+ *
+ * Lo que NO cambió: ningún límite usa sombra (todo es una regla de 1px), una
+ * sola familia de esquinas (4px), cero iconos en círculo, cero eyebrows, y el
+ * acento aparece en ≤10% de la pantalla.
+ *
+ * Los nombres de los tokens se conservan —hoja, tinta, laton— porque cambiarlos
+ * tocaría decenas de archivos sin ganar nada. Lo que cambió es su valor.
+ */
+
 @theme inline {
-  /* Core Palette */
-  --color-background: #F9F7F2;
-  --color-foreground: #1A1A1A;
+  /* ---- Materiales ---- */
+  --color-hoja: #fafafa; /* el lienzo: blanco de sala, no papel */
+  --color-hoja-alta: #ffffff; /* la superficie elevada: la única más clara */
+  --color-hoja-baja: #f2f2f3; /* receso frío */
+  --color-tinta: #16171a; /* negro de sala: neutro, sin temperatura */
+  --color-tinta-media: #3d3f45; /* texto de apoyo */
+  --color-tinta-tenue: #6b6d75; /* terciario: 5.0:1 sobre el lienzo */
+  --color-laton: #8a6a1f; /* el latón: único acento, escaso */
+  --color-laton-claro: #a8842f; /* solo decorativo: nunca texto */
+  --color-laton-tenue: #8a6a1f1a;
+  --color-laton-sello: #6e5418; /* única superficie de latón legible */
+  --color-laca: #9a3327; /* solo error y acción destructiva */
+  --color-laca-tenue: #9a332714;
 
-  /* Primary */
-  --color-charcoal: #1A1A1A;
-  --color-charcoal-hover: #2A2A2A;
-  --color-charcoal-muted: #474746;
+  /* ---- Legacy (admin) ---- */
+  --color-background: #fafafa;
+  --color-foreground: #16171a;
+  --color-charcoal: #16171a;
+  --color-charcoal-hover: #24262b;
+  --color-charcoal-muted: #3d3f45;
+  --color-gold: #8a6a1f;
+  --color-gold-hover: #755a1a;
+  --color-gold-muted: #8a6a1f26;
+  --color-gold-bg: #8a6a1f14;
+  --color-burgundy: #9a3327;
+  --color-sage: #4a6039;
+  --color-clear-day: #fafafa;
 
-  /* Accent */
-  --color-gold: #A07C2E;
-  --color-gold-hover: #8A6A24;
-  --color-gold-muted: #A07C2E26;
-  --color-gold-bg: #A07C2E14;
+  /* Superficies: tres pasos reales */
+  --color-surface: #fafafa;
+  --color-surface-dim: #e9e9eb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f5f6;
+  --color-surface-container: #f2f2f3;
+  --color-surface-container-high: #e9e9eb;
+  --color-surface-container-highest: #e2e2e5;
 
-  /* Semantic - Danger / Inactive */
-  --color-burgundy: #722F37;
+  /* Texto */
+  --color-text-primary: #16171a;
+  --color-text-secondary: #3d3f45;
+  --color-text-muted: #6b6d75;
+  --color-text-on-dark: #fafafa;
+  --color-on-surface: #16171a;
+  --color-on-surface-variant: #3d3f45;
+  --color-on-primary: #fafafa;
+  --color-on-tertiary: #fafafa;
+  --color-on-secondary-fixed-variant: #3d3f45;
+  --color-inverse-surface: #24262b;
+  --color-inverse-on-surface: #fafafa;
+  --color-tertiary-fixed-dim: #a8842f;
+  --color-primary: #16171a;
+  --color-inverse-primary: #cbccd0;
 
-  /* Semantic - Success / Active */
-  --color-sage: #4A6039;
+  /* Reglas: `rule-fuerte` pasa 3:1 sobre el lienzo, así que puede delimitar un
+     control; `rule` separa sin delimitar. */
+  --color-outline: #6b6d75;
+  --color-outline-variant: #cbccd0;
+  --color-rule: #e5e5e7;
+  --color-rule-fuerte: #a8a9ad;
 
-  /* Surfaces */
-  --color-surface: #F9F7F2;
-  --color-surface-dim: #DBDAD9;
-  --color-surface-container-lowest: #FFFFFF;
-  --color-surface-container-low: #F5F3F3;
-  --color-surface-container: #EFEDED;
-  --color-surface-container-high: #E9E8E7;
-  --color-surface-container-highest: #E4E2E2;
+  /* ---- Tipografía ----
+     Jost (display) + Manrope (texto): sans modernas y redondeadas. Las pilas de
+     respaldo son sans y geométricas para que un fallback no cambie el carácter. */
+  --font-display: var(--font-folio), 'Futura', 'Century Gothic', system-ui, sans-serif;
+  --font-body: var(--font-lectura), system-ui, 'Segoe UI', sans-serif;
+  /* El mundo anterior numeraba series en monoespaciada; acá no hay series que
+     numerar, así que las etiquetas usan la fuente de texto con tracking. */
+  --font-serial: var(--font-lectura), system-ui, sans-serif;
 
-  /* Text */
-  --color-text-primary: #1A1A1A;
-  --color-text-secondary: #5E5E5B;
-  --color-text-muted: #6B6E6E;
-  --color-text-on-dark: #F2F0F0;
+  /* Escala. Este mundo es más aireado que el anterior, así que display y títulos
+     suben un paso. Los interlineados pertenecen a Jost/Manrope (altura de x
+     alta): no son constantes del sistema. */
+  --text-display: clamp(2.75rem, 7.5vw, 6rem);
+  --text-display--line-height: 1.06;
+  --text-titulo: clamp(1.875rem, 3.6vw, 3rem);
+  --text-titulo--line-height: 1.12;
+  --text-folio: clamp(1.3125rem, 2vw, 1.75rem);
+  --text-folio--line-height: 1.26;
+  --text-cuerpo: 1.0625rem;
+  --text-cuerpo--line-height: 1.62;
+  --text-menudo: 0.8125rem;
+  --text-menudo--line-height: 1.55;
+  --text-serial: 0.6875rem;
+  --text-serial--line-height: 1.4;
+  --text-marca: 1.4rem; /* wordmark del navbar */
+  --text-marca--line-height: 1.1;
+  --text-lamina: 1.6rem; /* título de lámina destacada */
+  --text-lamina--line-height: 1.24;
+  --text-precio: 1.35rem; /* cifra de precio en grilla */
+  --text-precio--line-height: 1.1;
+  --text-colofon: 1.75rem; /* wordmark del pie */
+  --text-tasacion: 2.5rem; /* precio en la ficha de propiedad */
+  --text-tasacion--line-height: 1.05;
 
-  /* Material-style semantic tokens */
-  --color-on-surface: #1B1C1C;
-  --color-on-surface-variant: #444748;
-  --color-on-primary: #FFFFFF;
-  --color-on-tertiary: #FFFFFF;
-  --color-on-secondary-fixed-variant: #474744;
-  --color-inverse-surface: #303031;
-  --color-inverse-on-surface: #F2F0F0;
-  --color-tertiary-fixed-dim: #8B6914;
-  --color-primary: #000000;
-  --color-inverse-primary: #C8C6C5;
+  /* ---- Ritmo ---- */
+  --spacing: 0.25rem;
+  --container-tomo: 1440px;
 
-  /* Outlines */
-  --color-outline: #747878;
-  --color-outline-variant: #939696;
-
-  /* Utility */
-  --color-clear-day: #F9F7F2;
-
-  /* Fonts */
-  --font-body: var(--font-inter);
-  --font-display: var(--font-playfair);
-
-  /* Shadows */
-  --shadow-soft: 0 10px 40px -10px rgba(26, 26, 26, 0.08);
-  --shadow-card: 0 4px 6px -1px rgba(26, 26, 26, 0.02), 0 2px 4px -1px rgba(26, 26, 26, 0.02);
-  --shadow-elevated: 0 10px 40px -10px rgba(26, 26, 26, 0.04), 0 4px 16px -4px rgba(26, 26, 26, 0.03);
-
-  /* Border Radius - Sharp, architectural */
-  --radius-sm: 2px;
+  /* ---- Esquinas: una sola familia ---- */
+  --radius-sm: 4px;
   --radius-md: 4px;
   --radius-lg: 4px;
-  --radius-xl: 8px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+
+  /* Regla de 1px como sombra de borde (usada por .hoja) */
+  --shadow-none: none;
 }
 
 body {
-  background: #F9F7F2;
-  color: #1A1A1A;
+  background: var(--color-hoja);
+  color: var(--color-tinta);
   font-family: var(--font-body);
+  font-size: var(--text-cuerpo);
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
 }
 
-/* Glassmorphism utility */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* Números y medidas siempre tabulares: una cifra no debe bailar al cambiar. */
+.tabular,
+.cifra {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
-.glass-panel-dark {
-  background: rgba(26, 26, 26, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* ---------------------------------------------------------------------------
+   LA SUPERFICIE
+   Se define por su marco de 1px, nunca por una sombra. Un `.hoja` no se anida
+   dentro de otro `.hoja`.
+--------------------------------------------------------------------------- */
+.hoja {
+  background: var(--color-hoja-alta);
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
 }
 
-/* Hero overlay gradient */
-.hero-overlay {
+/* ---------------------------------------------------------------------------
+   EL RAIL DE MARGEN
+   Columna izquierda que sostiene la orientación. Es el gesto estructural: nada
+   se centra, todo se alinea al margen.
+--------------------------------------------------------------------------- */
+.rail {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* ---------------------------------------------------------------------------
+   ETIQUETAS
+   Tratamiento funcional para rótulos de dato: etiquetas de formulario, cabeceras
+   de tabla, contexto de sección. NO es un eyebrow de marketing: nunca se usa
+   arriba de un título (el título se sostiene solo), y su lugar es dentro de un
+   campo, de una cabecera de columna o de un rail.
+--------------------------------------------------------------------------- */
+.indicador {
+  font-family: var(--font-body);
+  font-size: var(--text-serial);
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  color: var(--color-tinta-tenue);
+}
+
+/* ---------------------------------------------------------------------------
+   ESTADO
+   Etiqueta de estado de un registro: publicada / oculta, administrador /
+   usuario. Es información, no un timbre: sin borde, sin caja, sin forma de
+   sello. El estado se distingue por tono, no por simular un objeto.
+--------------------------------------------------------------------------- */
+.sello {
+  font-family: var(--font-body);
+  font-size: var(--text-serial);
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  text-transform: uppercase;
+  display: inline-block;
+  line-height: 1.3;
+}
+.sello--certificado {
+  color: var(--color-tinta);
+}
+.sello--reservado {
+  color: var(--color-tinta-tenue);
+}
+
+/* ---------------------------------------------------------------------------
+   ESTADO POR FORMA DE LÍNEA
+   Donación del rail de emisión: el estado se lee por altura, trazo y
+   duplicación, no por tono. Se usa en el índice y en los filtros.
+--------------------------------------------------------------------------- */
+.marca-linea {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--color-rule-fuerte);
+}
+.marca-linea--activa {
+  height: 3px;
+  background: var(--color-tinta);
+}
+.marca-linea--activa-doble {
+  height: 5px;
   background: linear-gradient(
     to bottom,
-    rgba(27, 28, 28, 0.15) 0%,
-    rgba(27, 28, 28, 0.65) 100%
+    var(--color-tinta) 0 2px,
+    transparent 2px 3px,
+    var(--color-laton) 3px 4px,
+    transparent 4px 5px
+  );
+}
+.marca-linea--pendiente {
+  background: repeating-linear-gradient(
+    to right,
+    var(--color-rule-fuerte) 0 4px,
+    transparent 4px 8px
   );
 }
 
-/* Ambient glow for sections */
-.glow-gold {
-  position: relative;
-}
-.glow-gold::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(600px, 80vw);
-  height: min(600px, 80vw);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(160, 124, 46, 0.04) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.hide-scroll::-webkit-scrollbar {
-  display: none;
-}
-.hide-scroll {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* ---------------------------------------------------------------------------
+   FOCO
+   Un solo tratamiento de foco en todo el sitio, visible sobre hoja y sobre foto.
+--------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--color-laton);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -139,6 +254,14 @@ body {
   }
 }
 
+/* Utilidades de scroll y safe-area */
+.hide-scroll::-webkit-scrollbar {
+  display: none;
+}
+.hide-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -146,6 +269,7 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-a[href] {
+a[href],
+button:not([disabled]) {
   cursor: pointer;
 }

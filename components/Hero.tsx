@@ -1,12 +1,24 @@
 "use client";
 
-import { useState, useCallback, useMemo, FormEvent } from "react";
+import { useState, FormEvent, useMemo } from "react";
 import { FiSearch, FiSliders } from "react-icons/fi";
 import FilterModal from "./ui/FilterModal";
 import { useRouter, useSearchParams } from "next/navigation";
-
 import Image from "next/image";
 import heroimg from "@/public/heroimg2.jpg";
+
+/*
+ * Hero — Folio y Sello.
+ *
+ * Lo que cambió y por qué:
+ *  - Se fue el eyebrow "— B I E N E S R A Í C E S —": el craft floor lo prohíbe,
+ *    el título se sostiene solo.
+ *  - Se fue el panel glass flotante y las tabs de categoría glass: el buscador
+ *    ahora es una fila de índice con línea base, el gesto de archivo del mundo.
+ *  - Se fue el `min-h-dvh` centrado: la composición es asimétrica, la foto entra
+ *    a sangre y el rail de margen lleva la serie. La acción primaria va al
+ *    margen izquierdo, nunca centrada.
+ */
 
 interface HeroDict {
   title_start: string;
@@ -20,9 +32,18 @@ interface HeroDict {
 interface HeroProps {
   dict: HeroDict;
   totalResults?: number;
+  /** Propiedades publicadas en alquiler: alimenta la línea de catálogo. */
+  totalAlquiler?: number;
+  /** Categorías definidas por el admin: las opciones del filtro. */
+  categorias?: { id: string; name: string; slug: string }[];
 }
 
-export default function Hero({ dict, totalResults = 0 }: HeroProps) {
+export default function Hero({
+  dict,
+  totalResults = 0,
+  totalAlquiler = 0,
+  categorias = [],
+}: HeroProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -30,19 +51,17 @@ export default function Hero({ dict, totalResults = 0 }: HeroProps) {
     searchParams.get("location") || "",
   );
 
-  const filterInitialValues = {
-    location: searchParams.get("location") || "",
-    minPrice: searchParams.get("minPrice") || "",
-    maxPrice: searchParams.get("maxPrice") || "",
-    propertyType: searchParams.get("type") || "Cualquier Tipo",
-    beds: parseInt(searchParams.get("beds") || "0", 10),
-    baths: parseInt(searchParams.get("baths") || "0", 10),
-    amenities: searchParams.get("amenities")?.split(",").filter(Boolean) || [],
-  };
-
-  const openFilterModal = () => {
-    setIsFilterModalOpen(true);
-  };
+  const filterInitialValues = useMemo(
+    () => ({
+      location: searchParams.get("location") || "",
+      minPrice: searchParams.get("minPrice") || "",
+      maxPrice: searchParams.get("maxPrice") || "",
+      categoria: searchParams.get("categoria") || "",
+      beds: parseInt(searchParams.get("beds") || "0", 10),
+      baths: parseInt(searchParams.get("baths") || "0", 10),
+    }),
+    [searchParams],
+  );
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -56,115 +75,125 @@ export default function Hero({ dict, totalResults = 0 }: HeroProps) {
     router.push(`/?${params.toString()}`);
   };
 
+  const enVenta = Math.max(0, totalResults - totalAlquiler);
+
   return (
-    <section
-      id="hero"
-      className="relative min-h-dvh flex items-center justify-center pt-24 pb-12 overflow-hidden"
-    >
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          alt="Luxury modern villa with pool"
-          src={heroimg}
-          fill
-          priority
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 hero-overlay"></div>
-      </div>
+    <section id="hero" className="relative w-full">
+      {/* ------------------------------------------------------------------
+          PRIMER VIEWPORT — la tesis.
+          La fotografía es la obra: entra a sangre, sin rail, sin marco y sin
+          nada que le compita. La fila de búsqueda se apoya sobre su borde
+          inferior.
+      ------------------------------------------------------------------ */}
+      <div>
+        <div className="relative h-[52vh] min-h-[19rem] w-full overflow-hidden md:h-[62vh]">
+          <Image
+            alt="Conjunto residencial contemporáneo con balcones y jardín"
+            src={heroimg}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          {/* Velo: solo para legibilidad de la fila de índice, no decoración. */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-t from-tinta/85 via-tinta/35 to-tinta/10"
+          />
 
-      {/* Content Container */}
-      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center mt-12 md:mt-0">
-        {/* Eyebrow */}
-        <p className="text-xs tracking-[0.2em] text-text-on-dark mb-6 font-medium uppercase">
-          — B I E N E S R A Í C E S —
-        </p>
-
-        {/* Headline */}
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-on-tertiary mb-6 max-w-4xl leading-tight font-display">
-          {dict.title_start}
-          <span className="relative inline-block">
-            <span className="relative z-10 font-semibold">
-              {dict.title_highlight}
-            </span>
-          </span>
-          {dict.title_end}
-        </h1>
-
-        {/* Subtitle */}
-        <p className="text-base md:text-lg text-surface-container-low mb-12 max-w-2xl font-light leading-relaxed">
-          {dict.subtitle}
-        </p>
-
-        {/* Search Component - Glass Panel */}
-        <div className="w-full max-w-3xl glass-panel rounded p-2 md:p-3 mb-10 flex flex-col md:flex-row gap-3">
-          <div className="relative flex-grow">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <FiSearch className="text-on-secondary-fixed-variant text-xl" />
-            </div>
-            <label htmlFor="hero-search" className="sr-only">
-              {dict.search_placeholder}
-            </label>
-            <input
-              id="hero-search"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-14 pl-12 pr-4 bg-surface-container-lowest/90 border-none rounded text-on-surface placeholder:text-on-secondary-fixed-variant/70 focus:ring-2 focus:ring-tertiary-fixed-dim transition-all text-base"
-              placeholder={dict.search_placeholder}
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={openFilterModal}
-              className="flex items-center justify-center h-14 px-6 bg-surface-container-lowest/90 rounded text-on-surface hover:bg-surface transition-colors border border-transparent hover:border-outline-variant cursor-pointer"
+          {/* Fila de índice del buscador, anclada al pie de la foto. */}
+          <div className="absolute inset-x-0 bottom-0 px-4 sm:px-6 lg:px-10">
+            <form
+              onSubmit={handleSearch}
+              role="search"
+              className="hoja flex flex-col gap-2 p-2 md:flex-row md:items-center"
             >
-              <FiSliders className="mr-2 text-base" />
-              <span className="font-medium text-sm">Filtros</span>
-            </button>
-            <button
-              type="submit"
-              className="h-14 px-8 bg-primary text-on-primary rounded font-medium hover:bg-inverse-surface transition-colors text-sm cursor-pointer"
-            >
-              {dict.search_button}
-            </button>
+              <div className="relative flex-1">
+                <label htmlFor="hero-search" className="sr-only">
+                  {dict.search_placeholder}
+                </label>
+                <FiSearch
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-tinta-tenue"
+                />
+                <input
+                  id="hero-search"
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={dict.search_placeholder}
+                  className="h-12 w-full border-0 border-b border-rule bg-transparent pl-11 pr-4 text-cuerpo text-tinta placeholder:text-tinta-tenue focus:border-tinta focus:outline-none md:h-14"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsFilterModalOpen(true)}
+                  className="inline-flex h-12 items-center justify-center gap-2 border border-rule-fuerte px-4 text-menudo font-medium text-tinta transition-colors hover:border-tinta md:h-14"
+                >
+                  <FiSliders aria-hidden="true" />
+                  Filtros
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex h-12 flex-1 items-center justify-center border border-tinta bg-tinta px-6 text-menudo font-medium text-hoja transition-colors hover:bg-charcoal-hover md:h-14 md:flex-none"
+                >
+                  {dict.search_button}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
-        {/* Category Tabs */}
-        <div
-          className="flex flex-wrap justify-center gap-3 md:gap-4"
-          role="tablist"
-          aria-label="Tipo de propiedad"
-        >
-          {["Todos", "Casa", "Apartamento", "Villa", "Penthouse"].map((pt) => {
-            const isActive = (searchParams.get("type") || "Todos") === pt;
-            return (
-              <button
-                key={pt}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => {
-                  const params = new URLSearchParams(searchParams.toString());
-                  if (pt === "Todos") {
-                    params.delete("type");
-                  } else {
-                    params.set("type", pt);
-                  }
-                  params.delete("page");
-                  router.push(`/?${params.toString()}`);
-                }}
-                className={`px-6 py-2 rounded text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none cursor-pointer ${
-                  isActive
-                    ? "glass-panel text-on-tertiary border-tertiary-fixed-dim/50"
-                    : "glass-panel text-on-tertiary hover:bg-white/10"
-                }`}
-              >
-                {pt}
-              </button>
-            );
-          })}
+        {/* ------------------------------------------------------------------
+            Titular y estado del catálogo. Sobre el lienzo, alineados al margen.
+            El titular es la única pieza de escala display de la página.
+        ------------------------------------------------------------------ */}
+        <div className="mx-auto max-w-tomo px-4 pb-10 pt-12 sm:px-6 lg:px-10 lg:pb-16 lg:pt-16">
+          <h1 className="max-w-[19ch] font-display text-display font-normal text-tinta">
+            {dict.title_start}
+            <em className="not-italic text-laton">{dict.title_highlight}</em>
+            {dict.title_end}
+          </h1>
+
+          <p className="mt-6 max-w-[46ch] text-cuerpo text-tinta-media">
+            {dict.subtitle}
+          </p>
+
+          {/* ------------------------------------------------------------------
+              Estado del catálogo, en lugar de un filtro de tipo.
+
+              Por qué se retiró el filtro: sus ejes (Casa, Apartamento, Villa,
+              Penthouse) se pasaban a la consulta como `title.ilike`, es decir
+              buscaban esa palabra en el TÍTULO de la propiedad — el modelo solo
+              tiene `type` = venta/alquiler, así que no existía un filtro por
+              categoría. Un control que parece filtrar y en realidad busca texto
+              es peor que no tenerlo. Además se solapaba con el filtro de
+              operación que ya vive en la sección del catálogo.
+
+              En su lugar va un dato que el sistema sí puede calcular y que
+              orienta al visitante: cuánto hay y en qué proporción.
+          ------------------------------------------------------------------ */}
+          <dl className="mt-12 flex flex-wrap items-baseline gap-x-10 gap-y-4 border-t border-rule pt-6">
+            <div className="flex items-baseline gap-2.5">
+              <dt className="indicador">En el catálogo</dt>
+              <dd className="tabular font-display text-precio leading-none text-tinta">
+                {totalResults}
+              </dd>
+            </div>
+            <div className="flex items-baseline gap-2.5">
+              <dt className="indicador">En venta</dt>
+              <dd className="tabular font-display text-precio leading-none text-tinta">
+                {enVenta}
+              </dd>
+            </div>
+            <div className="flex items-baseline gap-2.5">
+              <dt className="indicador">En alquiler</dt>
+              <dd className="tabular font-display text-precio leading-none text-tinta">
+                {totalAlquiler}
+              </dd>
+            </div>
+          </dl>
         </div>
       </div>
 
@@ -173,6 +202,7 @@ export default function Hero({ dict, totalResults = 0 }: HeroProps) {
         onClose={() => setIsFilterModalOpen(false)}
         initialFilters={filterInitialValues}
         totalResults={totalResults}
+        categorias={categorias}
       />
     </section>
   );
